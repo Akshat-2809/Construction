@@ -7,9 +7,9 @@ import MachineCard from "@/components/machinery/machineCard";
 import type { Machine } from "@/types/machine";
 import { useLang } from "@/context/LanguageContext";
 import { translations } from "@/lib/translation";
+import { useRequireAuth } from "@/hooks/useRequireAuth";
 
-const API_URL =
-  process.env.NEXT_PUBLIC_API_URL || "http://localhost:5001";
+const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5001";
 
 function CraneLoader() {
   return (
@@ -24,23 +24,9 @@ function CraneLoader() {
           50%       { transform: translateY(-7px); opacity: 1; }
         }
       `}</style>
-
-      <div
-        style={{
-          animation: "crane-swing 2s ease-in-out infinite",
-          transformOrigin: "top center",
-        }}
-      >
-        <Image
-          src="/crane-loader.webp"
-          alt="Loading…"
-          width={100}
-          height={100}
-          style={{ objectFit: "contain" }}
-        />
+      <div style={{ animation: "crane-swing 2s ease-in-out infinite", transformOrigin: "top center" }}>
+        <Image src="/crane-loader.webp" alt="Loading…" width={100} height={100} style={{ objectFit: "contain" }} />
       </div>
-
-      {/* Bouncing dots */}
       <div className="flex items-center gap-2">
         {[0, 1, 2].map((i) => (
           <span
@@ -61,6 +47,8 @@ function CraneLoader() {
 }
 
 export default function MachineryPage() {
+  const { user, loading: authLoading } = useRequireAuth();
+
   const [machines, setMachines] = useState<Machine[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -69,6 +57,7 @@ export default function MachineryPage() {
   const t = translations[lang];
 
   useEffect(() => {
+    if (!user) return;
     async function loadMachines() {
       try {
         const res = await fetch(`${API_URL}/api/machines`);
@@ -82,7 +71,16 @@ export default function MachineryPage() {
       }
     }
     loadMachines();
-  }, []);
+  }, [user]);
+
+  // Show spinner while checking auth (redirects if not logged in)
+  if (authLoading || !user) {
+    return (
+      <div className="flex min-h-[80vh] items-center justify-center">
+        <div className="h-8 w-8 animate-spin rounded-full border-2 border-neutral-200 border-t-ink" />
+      </div>
+    );
+  }
 
   const filtered = machines.filter((m: Machine) => {
     const q = query.toLowerCase();
@@ -101,9 +99,7 @@ export default function MachineryPage() {
         <h1 className="text-3xl font-bold tracking-tight text-ink sm:text-4xl">
           {t.browseTitle}
         </h1>
-        <p className="mt-3 text-lg text-neutral-600">
-          {t.browseSubtext}
-        </p>
+        <p className="mt-3 text-lg text-neutral-600">{t.browseSubtext}</p>
       </div>
 
       {/* Search bar */}
@@ -130,7 +126,7 @@ export default function MachineryPage() {
         )}
       </div>
 
-      {/* Can't find what you need banner */}
+      {/* Can't find banner */}
       {!loading && !error && (
         <Link
           href="/machinery/request"
@@ -146,20 +142,15 @@ export default function MachineryPage() {
         </Link>
       )}
 
-      {/* Crane loader */}
       {loading && <CraneLoader />}
 
-      {/* Error state */}
       {error && !loading && (
         <div className="rounded-2xl border border-red-200 bg-red-50 py-16 text-center">
           <p className="font-semibold text-red-600">{error}</p>
-          <p className="mt-1 text-sm text-red-400">
-            Make sure the backend server is running.
-          </p>
+          <p className="mt-1 text-sm text-red-400">Make sure the backend server is running.</p>
         </div>
       )}
 
-      {/* Grid */}
       {!loading && !error && (
         filtered.length > 0 ? (
           <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 items-start">

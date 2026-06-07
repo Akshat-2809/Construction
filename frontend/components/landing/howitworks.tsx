@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useLang } from "@/context/LanguageContext";
 import { translations } from "@/lib/translation";
+import { useAuth } from "@/context/AuthContext";
 
 const icons = [
   <path key="1" strokeLinecap="round" strokeLinejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z" />,
@@ -13,12 +14,15 @@ const icons = [
 export default function HowItWorks() {
   const { lang } = useLang();
   const t = translations[lang];
+  const { user } = useAuth();
 
   const steps = [
     { number: "01", title: t.step1Title, description: t.step1Desc, icon: icons[0] },
     { number: "02", title: t.step2Title, description: t.step2Desc, icon: icons[1] },
     { number: "03", title: t.step3Title, description: t.step3Desc, icon: icons[2] },
   ];
+
+  const ctaHref = user ? "/machinery" : "/auth?redirect=/machinery";
 
   return (
     <section id="how-it-works" className="relative scroll-mt-20 bg-mist py-20 sm:py-28">
@@ -34,9 +38,7 @@ export default function HowItWorks() {
               <span className="absolute bottom-1 left-0 h-3 w-full bg-hivis/60" />
             </span>
           </h2>
-          <p className="mt-5 text-lg leading-relaxed text-neutral-600">
-            {t.howSubtext}
-          </p>
+          <p className="mt-5 text-lg leading-relaxed text-neutral-600">{t.howSubtext}</p>
         </div>
 
         <div className="mt-16 grid gap-8 md:grid-cols-3">
@@ -61,7 +63,7 @@ export default function HowItWorks() {
 
         <div className="mt-14 text-center">
           <Link
-            href="/machinery"
+            href={ctaHref}
             className="group inline-flex items-center justify-center gap-2 rounded-full bg-ink px-8 py-4 text-base font-semibold text-white transition-all hover:bg-neutral-800 hover:-translate-y-0.5 active:translate-y-0"
           >
             {t.howCta}

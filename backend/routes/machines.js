@@ -1,8 +1,9 @@
 const express = require("express");
 const router = express.Router();
 const Machine = require("../models/machine");
+const authMiddleware = require("../middleware/auth");
 
-// GET /api/machines
+// GET /api/machines — public
 router.get("/", async (req, res) => {
   try {
     const machines = await Machine.find().sort({ createdAt: -1 });
@@ -12,8 +13,8 @@ router.get("/", async (req, res) => {
   }
 });
 
-// POST /api/machines
-router.post("/", async (req, res) => {
+// POST /api/machines — must be logged in
+router.post("/", authMiddleware, async (req, res) => {
   try {
     const {
       category, craneType, company, model, image, location, pricePerMonth,
@@ -21,7 +22,8 @@ router.post("/", async (req, res) => {
       ownerName, ownerContact, description,
     } = req.body;
 
-    const machineData = {
+    const newMachine = new Machine({
+      ownerId: req.user._id,   // from JWT via authMiddleware
       category,
       craneType: category === "Crane" ? craneType : null,
       company, model, image, location,
@@ -31,11 +33,9 @@ router.post("/", async (req, res) => {
       availability: availability === "no" ? "no" : "yes",
       availableFrom: availability === "no" && availableFrom ? new Date(availableFrom) : null,
       ownerName, ownerContact, description,
-      editCount: 0,
-      contactVerified: false,
-    };
+      contactVerified: true,   // all new listings are auto-verified via account OTP
+    });
 
-    const newMachine = new Machine(machineData);
     const saved = await newMachine.save();
     res.status(201).json(saved);
   } catch (error) {
@@ -43,16 +43,14 @@ router.post("/", async (req, res) => {
   }
 });
 
-// PUT /api/machines/:id — verified owners: unlimited edits, unverified: max 1
-router.put("/:id", async (req, res) => {
+// PUT /api/machines/:id — must be logged in AND be the owner
+router.put("/:id", authMiddleware, async (req, res) => {
   try {
     const machine = await Machine.findById(req.params.id);
     if (!machine) return res.status(404).json({ message: "Machine not found" });
 
-    if (!machine.contactVerified && machine.editCount >= 1) {
-      return res.status(403).json({
-        message: "Unverified listings can only be edited once. Verify your contact to unlock unlimited edits.",
-      });
+    if (String(machine.ownerId) !== String(req.user._id)) {
+      return res.status(403).json({ message: "Not authorised to edit this listing" });
     }
 
     const {
@@ -60,24 +58,16 @@ router.put("/:id", async (req, res) => {
       description, availability, availableFrom, modelYear, hoursUsed,
     } = req.body;
 
-    const contactChanged =
-      ownerContact &&
-      ownerContact.replace(/\s/g, "") !== machine.ownerContact.replace(/\s/g, "");
-
-    const updates = {
-      pricePerMonth: Number(pricePerMonth),
-      location, ownerName, ownerContact, description,
-      availability: availability === "no" ? "no" : "yes",
-      availableFrom: availability === "no" && availableFrom ? new Date(availableFrom) : null,
-      ...(modelYear !== undefined && { modelYear: Number(modelYear) }),
-      ...(hoursUsed !== undefined && { hoursUsed: Number(hoursUsed) }),
-      ...(contactChanged && { contactVerified: false }),
-      ...(!machine.contactVerified && { $inc: { editCount: 1 } }),
-    };
-
     const updated = await Machine.findByIdAndUpdate(
       req.params.id,
-      updates,
+      {
+        pricePerMonth: Number(pricePerMonth),
+        location, ownerName, ownerContact, description,
+        availability: availability === "no" ? "no" : "yes",
+        availableFrom: availability === "no" && availableFrom ? new Date(availableFrom) : null,
+        ...(modelYear !== undefined && { modelYear: Number(modelYear) }),
+        ...(hoursUsed !== undefined && { hoursUsed: Number(hoursUsed) }),
+      },
       { returnDocument: "after", runValidators: true }
     );
 
@@ -87,29 +77,20 @@ router.put("/:id", async (req, res) => {
   }
 });
 
-// DELETE /api/machines/:id
-router.delete("/:id", async (req, res) => {
+// DELETE /api/machines/:id — must be logged in AND be the owner
+router.delete("/:id", authMiddleware, async (req, res) => {
   try {
-    const machine = await Machine.findByIdAndDelete(req.params.id);
+    const machine = await Machine.findById(req.params.id);
     if (!machine) return res.status(404).json({ message: "Machine not found" });
+
+    if (String(machine.ownerId) !== String(req.user._id)) {
+      return res.status(403).json({ message: "Not authorised to delete this listing" });
+    }
+
+    await Machine.findByIdAndDelete(req.params.id);
     res.json({ success: true, message: "Listing deleted successfully" });
   } catch (error) {
     res.status(500).json({ message: "Failed to delete machine", error: error.message });
-  }
-});
-
-// PATCH /api/machines/:id/verify
-router.patch("/:id/verify", async (req, res) => {
-  try {
-    const machine = await Machine.findByIdAndUpdate(
-      req.params.id,
-      { contactVerified: true },
-      { returnDocument: "after" }
-    );
-    if (!machine) return res.status(404).json({ message: "Machine not found" });
-    res.json({ success: true, contactVerified: true });
-  } catch (error) {
-    res.status(500).json({ message: "Failed to verify contact", error: error.message });
   }
 });
 

@@ -5,6 +5,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useLang } from "@/context/LanguageContext";
 import { translations } from "@/lib/translation";
+import { useAuth } from "@/context/AuthContext";
 
 const slides = [
   { src: "/excavator.webp", alt: "Excavator", labelKey: "Excavator", rate: "₹18,500/day" },
@@ -17,6 +18,7 @@ export default function Hero() {
   const [current, setCurrent] = useState(0);
   const { lang } = useLang();
   const t = translations[lang];
+  const { user } = useAuth();
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -27,12 +29,16 @@ export default function Hero() {
 
   const active = slides[current];
 
+  const findHref = user ? "/machinery" : "/auth?redirect=/machinery";
+  const listHref = user ? "/machinery/register" : "/auth?redirect=/machinery/register";
+
   return (
     <section className="relative overflow-hidden bg-white">
       <div aria-hidden="true" className="pointer-events-none absolute -right-40 -top-40 h-96 w-96 rounded-full bg-hivis/10 blur-3xl" />
 
       <div className="mx-auto max-w-7xl px-6 py-16 sm:py-20 lg:px-8 lg:py-28">
         <div className="grid items-center gap-12 lg:grid-cols-2 lg:gap-16">
+
           {/* Left: copy */}
           <div className="text-center lg:text-left">
             <div className="inline-flex items-center gap-2 rounded-full border border-neutral-200 bg-mist px-4 py-1.5 text-sm font-medium text-neutral-700">
@@ -55,7 +61,7 @@ export default function Hero() {
 
             <div className="mt-10 flex flex-col gap-4 sm:flex-row sm:justify-center lg:justify-start">
               <Link
-                href="/machinery"
+                href={findHref}
                 className="group inline-flex items-center justify-center gap-2 rounded-full bg-ink px-8 py-4 text-base font-semibold text-white transition-all hover:bg-neutral-800 hover:-translate-y-0.5 active:translate-y-0"
               >
                 {t.heroCta1}
@@ -64,7 +70,7 @@ export default function Hero() {
                 </svg>
               </Link>
               <Link
-                href="/machinery/register"
+                href={listHref}
                 className="inline-flex items-center justify-center gap-2 rounded-full bg-hivis px-8 py-4 text-base font-bold text-ink transition-all hover:bg-hivis-dark hover:-translate-y-0.5 active:translate-y-0"
               >
                 {t.heroCta2}

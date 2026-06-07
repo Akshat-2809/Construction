@@ -25,7 +25,7 @@ export const companiesByCategory: { [key: string]: string[] } = {
     "Aquarius Engineering",
     "Ajax Engineering",
   ],
-  Fiori: ["Fiori"],
+  "Fiori": ["Ajax Engineering"],
   JCB: ["JCB"],
 };
 
@@ -69,8 +69,12 @@ export const modelsByCategoryAndCompany: { [key: string]: { [key: string]: strin
     "Aquarius Engineering": ["703D", "704D", "1405D", "1405D Prime", "1407D"],
     "Ajax Engineering": ["ASP 3009", "ASP 4011", "ASP 5009", "ARGO 7011", "ASP 10012"],
   },
-  Fiori: {
-    Fiori: ["DB 260S", "DB 350S", "DB 460S", "DB 600S", "DB 800S", "DBX 35", "DBX 50"],
+  "Fiori": {
+    "Ajax Engineering": [
+      "Argo 1000", "Argo 2000", "Argo 2500",
+      "Argo 3000", "Argo 4000", "Argo 4300", "Argo 4800",
+      "Udaan",
+    ],
   },
   JCB: {
     JCB: ["JCB 3DX", "JCB 3DX Super", "JCB 4DX", "JCB 3CX", "JCB 4CX"],
@@ -123,5 +127,6 @@ export const locations = [
   "Ujjain",
   "Bhopal",
   "Pithampur",
+  "Gwalior",
   "Other",
 ];

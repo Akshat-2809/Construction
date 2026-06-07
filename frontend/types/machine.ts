@@ -16,6 +16,7 @@ export type AvailabilityStatus = "yes" | "no";
 export interface Machine {
   id?: string;
   _id?: string;
+  ownerId?: string;
   category: MachineCategory;
   craneType?: string | null;
   company: string;
@@ -30,6 +31,6 @@ export interface Machine {
   ownerName: string;
   ownerContact: string;
   description?: string;
-  editCount?: number;
   contactVerified?: boolean;
+  createdAt?: string;
 }

@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useLang } from "@/context/LanguageContext";
 import { translations } from "@/lib/translation";
+import { useAuth } from "@/context/AuthContext";
 
 const icons = [
   <path key="1" strokeLinecap="round" strokeLinejoin="round" d="M12 6v12m-3-2.818.879.659c1.171.879 3.07.879 4.242 0 1.172-.879 1.172-2.303 0-3.182C13.536 12.219 12.768 12 12 12c-.725 0-1.45-.22-2.003-.659-1.106-.879-1.106-2.303 0-3.182s2.9-.879 4.006 0l.415.33M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />,
@@ -13,12 +14,15 @@ const icons = [
 export default function ListYourMachine() {
   const { lang } = useLang();
   const t = translations[lang];
+  const { user } = useAuth();
 
   const benefits = [
     { title: t.benefit1Title, description: t.benefit1Desc, icon: icons[0] },
     { title: t.benefit2Title, description: t.benefit2Desc, icon: icons[1] },
     { title: t.benefit3Title, description: t.benefit3Desc, icon: icons[2] },
   ];
+
+  const listHref = user ? "/machinery/register" : "/auth?redirect=/machinery/register";
 
   return (
     <section className="relative overflow-hidden bg-white py-20 sm:py-28">
@@ -37,13 +41,11 @@ export default function ListYourMachine() {
                 <span className="absolute bottom-1 left-0 h-3 w-full bg-hivis/60" />
               </span>
             </h2>
-            <p className="mt-5 max-w-lg text-lg leading-relaxed text-neutral-600">
-              {t.listSubtext}
-            </p>
+            <p className="mt-5 max-w-lg text-lg leading-relaxed text-neutral-600">{t.listSubtext}</p>
 
             <div className="mt-10 flex flex-col gap-4 sm:flex-row">
               <Link
-                href="/machinery/register"
+                href={listHref}
                 className="group inline-flex items-center justify-center gap-2 rounded-full bg-hivis px-8 py-4 text-base font-bold text-ink transition-all hover:bg-hivis-dark hover:-translate-y-0.5 active:translate-y-0"
               >
                 {t.listCta1}

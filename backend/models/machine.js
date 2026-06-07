@@ -2,6 +2,11 @@ const mongoose = require("mongoose");
 
 const machineSchema = new mongoose.Schema(
   {
+    ownerId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+      required: true,
+    },
     category: {
       type: String,
       required: true,
@@ -28,8 +33,7 @@ const machineSchema = new mongoose.Schema(
     ownerName: { type: String, required: true },
     ownerContact: { type: String, required: true },
     description: { type: String },
-    editCount: { type: Number, default: 0 },
-    contactVerified: { type: Boolean, default: false },
+    contactVerified: { type: Boolean, default: true },
   },
   { timestamps: true }
 );
