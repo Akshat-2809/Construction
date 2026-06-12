@@ -12,8 +12,9 @@ interface User {
 interface AuthContextType {
   user: User | null;
   loading: boolean;
-  login: (user: User) => void;
+  login: (user: User, token: string) => void;
   logout: () => void;
+  getAuthHeader: () => Record<string, string>;
 }
 
 const AuthContext = createContext<AuthContextType>({
@@ -21,6 +22,7 @@ const AuthContext = createContext<AuthContextType>({
   loading: true,
   login: () => {},
   logout: () => {},
+  getAuthHeader: () => ({}),
 });
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL;
@@ -32,15 +34,19 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     async function fetchUser() {
       try {
+        const token = localStorage.getItem("ace_token");
+        if (!token) { setLoading(false); return; }
+
         const res = await fetch(`${API_URL}/api/auth/me`, {
-          credentials: "include",
+          headers: { Authorization: `Bearer ${token}` },
         });
         if (res.ok) {
-          const data = await res.json();
-          setUser(data);
+          setUser(await res.json());
+        } else {
+          localStorage.removeItem("ace_token");
         }
       } catch {
-        // Not logged in — fine
+        // not logged in
       } finally {
         setLoading(false);
       }
@@ -48,22 +54,26 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     fetchUser();
   }, []);
 
-  function login(userData: User) {
+  function login(userData: User, token: string) {
+    localStorage.setItem("ace_token", token);
     setUser(userData);
   }
 
   async function logout() {
-    try {
-      await fetch(`${API_URL}/api/auth/logout`, {
-        method: "POST",
-        credentials: "include",
-      });
-    } catch {}
+    localStorage.removeItem("ace_token");
     setUser(null);
+    try {
+      await fetch(`${API_URL}/api/auth/logout`, { method: "POST" });
+    } catch {}
+  }
+
+  function getAuthHeader(): Record<string, string> {
+    const token = localStorage.getItem("ace_token");
+    return token ? { Authorization: `Bearer ${token}` } : {};
   }
 
   return (
-    <AuthContext.Provider value={{ user, loading, login, logout }}>
+    <AuthContext.Provider value={{ user, loading, login, logout, getAuthHeader }}>
       {children}
     </AuthContext.Provider>
   );

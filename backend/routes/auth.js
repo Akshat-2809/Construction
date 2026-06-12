@@ -5,20 +5,13 @@ const User = require("../models/user");
 const authMiddleware = require("../middleware/auth");
 
 const JWT_SECRET = process.env.JWT_SECRET || "ace-secret-key";
-const IS_PROD = process.env.NODE_ENV === "production";
 
-function issueToken(user, res) {
-  const token = jwt.sign(
+function issueToken(user) {
+  return jwt.sign(
     { _id: user._id, name: user.name, phone: user.phone },
     JWT_SECRET,
     { expiresIn: "30d" }
   );
-  res.cookie("ace_token", token, {
-    httpOnly: true,
-    secure: IS_PROD,
-    sameSite: IS_PROD ? "none" : "lax",
-    maxAge: 30 * 24 * 60 * 60 * 1000,
-  });
 }
 
 // POST /api/auth/check-phone
@@ -45,14 +38,12 @@ router.post("/register", async (req, res) => {
     if (existing)
       return res.status(409).json({ message: "Phone already registered. Please log in." });
 
-    const user = await User.create({
-      name: name.trim(),
-      phone: cleanPhone,
-      phoneVerified: true,
+    const user = await User.create({ name: name.trim(), phone: cleanPhone, phoneVerified: true });
+    const token = issueToken(user);
+    res.status(201).json({
+      token,
+      user: { _id: user._id, name: user.name, phone: user.phone, isAdmin: user.isAdmin },
     });
-
-    issueToken(user, res);
-    res.status(201).json({ _id: user._id, name: user.name, phone: user.phone, isAdmin: user.isAdmin });
   } catch (err) {
     res.status(500).json({ message: "Registration failed", error: err.message });
   }
@@ -69,8 +60,11 @@ router.post("/login", async (req, res) => {
     if (!user)
       return res.status(404).json({ message: "Phone not registered. Please create an account." });
 
-    issueToken(user, res);
-    res.json({ _id: user._id, name: user.name, phone: user.phone, isAdmin: user.isAdmin });
+    const token = issueToken(user);
+    res.json({
+      token,
+      user: { _id: user._id, name: user.name, phone: user.phone, isAdmin: user.isAdmin },
+    });
   } catch (err) {
     res.status(500).json({ message: "Login failed", error: err.message });
   }
@@ -87,13 +81,8 @@ router.get("/me", authMiddleware, async (req, res) => {
   }
 });
 
-// POST /api/auth/logout
+// POST /api/auth/logout — client just deletes the token
 router.post("/logout", (req, res) => {
-  res.clearCookie("ace_token", {
-    httpOnly: true,
-    secure: IS_PROD,
-    sameSite: IS_PROD ? "none" : "lax",
-  });
   res.json({ success: true });
 });
 

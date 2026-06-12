@@ -42,7 +42,7 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
 export default function RegisterForm() {
   const { lang } = useLang();
   const t = translations[lang];
-  const { user } = useAuth();
+  const { user, getAuthHeader } = useAuth();
   const router = useRouter();
 
   const [form, setForm] = useState({
@@ -65,7 +65,6 @@ export default function RegisterForm() {
     availableFrom: "",
   });
 
-  // Sync user data into form once auth loads (user is null on first render)
   useEffect(() => {
     if (!user) return;
     const id = window.setTimeout(() => {
@@ -88,7 +87,6 @@ export default function RegisterForm() {
   const isOtherLocation = form.location === "Other";
   const defaultImage = categoryImageMap[form.category] ?? "/excavator.webp";
 
-  // Cities available for the currently selected state
   const availableCities = !isOtherState && form.state
     ? statesAndCities[form.state] ?? []
     : [];
@@ -136,10 +134,13 @@ export default function RegisterForm() {
     setError("");
 
     try {
+      // ✅ Fixed: use getAuthHeader() instead of credentials: "include"
       const res = await fetch(`${API_URL}/api/machines`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        credentials: "include",
+        headers: {
+          "Content-Type": "application/json",
+          ...getAuthHeader(),
+        },
         body: JSON.stringify({
           ...form,
           location: finalLocation,
@@ -156,7 +157,7 @@ export default function RegisterForm() {
 
       if (!res.ok) {
         const data = await res.json();
-        throw new Error(data.error || "Something went wrong");
+        throw new Error(data.message || data.error || "Something went wrong");
       }
 
       setSubmitted(true);
@@ -179,7 +180,6 @@ export default function RegisterForm() {
         <h3 className="mt-5 text-xl font-semibold text-ink">{t.regSuccessTitle}</h3>
         <p className="mt-2 text-neutral-600">{t.regSuccessSubtext}</p>
 
-        {/* Since user is logged in and phone-verified, show verified badge */}
         <div className="mt-4 inline-flex items-center gap-2 rounded-full bg-blue-50 px-4 py-2 text-sm font-semibold text-blue-600">
           <svg className="h-4 w-4" fill="currentColor" viewBox="0 0 24 24">
             <path fillRule="evenodd" d="M8.603 3.799A4.49 4.49 0 0 1 12 2.25c1.357 0 2.573.6 3.397 1.549a4.49 4.49 0 0 1 3.498 1.307 4.491 4.491 0 0 1 1.307 3.497A4.49 4.49 0 0 1 21.75 12a4.49 4.49 0 0 1-1.549 3.397 4.491 4.491 0 0 1-1.307 3.497 4.491 4.491 0 0 1-3.497 1.307A4.49 4.49 0 0 1 12 21.75a4.49 4.49 0 0 1-3.397-1.549 4.491 4.491 0 0 1-3.497-1.307 4.491 4.491 0 0 1-1.307-3.497A4.49 4.49 0 0 1 2.25 12a4.49 4.49 0 0 1 1.549-3.397 4.491 4.491 0 0 1 1.307-3.497 4.491 4.491 0 0 1 3.497-1.307Zm7.007 6.387a.75.75 0 1 0-1.22-.872l-3.236 4.53L9.53 12.22a.75.75 0 0 0-1.06 1.06l2.25 2.25a.75.75 0 0 0 1.14-.094l3.75-5.25Z" clipRule="evenodd" />
@@ -188,10 +188,7 @@ export default function RegisterForm() {
         </div>
 
         <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:justify-center">
-          <a
-            href="/machinery"
-            className="inline-flex items-center justify-center gap-2 rounded-full border border-neutral-300 bg-white px-6 py-2.5 text-sm font-semibold text-ink transition-colors hover:bg-neutral-50"
-          >
+          <a href="/machinery" className="inline-flex items-center justify-center gap-2 rounded-full border border-neutral-300 bg-white px-6 py-2.5 text-sm font-semibold text-ink transition-colors hover:bg-neutral-50">
             {t.regGoToListings}
           </a>
           <button
@@ -294,42 +291,19 @@ export default function RegisterForm() {
         </Field>
       </div>
 
-      {/* Location (state + city) + Price */}
+      {/* Location + Price */}
       <div className="grid gap-6 sm:grid-cols-2">
         <Field label={t.regLocation}>
           <div className="grid gap-3 sm:grid-cols-2">
-            <select
-              required
-              value={form.state}
-              onChange={(e) => {
-                update("state", e.target.value);
-                update("location", "");
-                update("customLocation", "");
-                update("customState", "");
-              }}
-              className={selectClass}
-            >
+            <select required value={form.state} onChange={(e) => { update("state", e.target.value); update("location", ""); update("customLocation", ""); update("customState", ""); }} className={selectClass}>
               <option value="" disabled>Select state</option>
               {states.map((s: string) => <option key={s} value={s}>{s}</option>)}
             </select>
 
             {isOtherState ? (
-              <input
-                type="text"
-                required
-                placeholder="Enter your state name"
-                value={form.customState}
-                onChange={(e) => update("customState", e.target.value.replace(/[^a-zA-Z\s]/g, ""))}
-                className={inputClass}
-              />
+              <input type="text" required placeholder="Enter your state name" value={form.customState} onChange={(e) => update("customState", e.target.value.replace(/[^a-zA-Z\s]/g, ""))} className={inputClass} />
             ) : (
-              <select
-                required
-                value={form.location}
-                disabled={!form.state}
-                onChange={(e) => { update("location", e.target.value); update("customLocation", ""); }}
-                className={`${selectClass} disabled:cursor-not-allowed disabled:bg-neutral-100 disabled:text-neutral-400`}
-              >
+              <select required value={form.location} disabled={!form.state} onChange={(e) => { update("location", e.target.value); update("customLocation", ""); }} className={`${selectClass} disabled:cursor-not-allowed disabled:bg-neutral-100 disabled:text-neutral-400`}>
                 <option value="" disabled>{form.state ? t.regSelectLocation : "Select state first"}</option>
                 {availableCities.map((c: string) => <option key={c} value={c}>{c}</option>)}
                 <option value="Other">Other (enter city name)</option>
@@ -337,29 +311,11 @@ export default function RegisterForm() {
             )}
           </div>
 
-          {/* Custom city input — shown when "Other" city is picked under a real state */}
           {!isOtherState && isOtherLocation && (
-            <input
-              type="text"
-              required
-              placeholder={t.regCustomLocationPlaceholder}
-              value={form.customLocation}
-              onChange={(e) => update("customLocation", e.target.value.replace(/[^a-zA-Z\s]/g, ""))}
-              className={`${inputClass} mt-3`}
-              autoFocus
-            />
+            <input type="text" required placeholder={t.regCustomLocationPlaceholder} value={form.customLocation} onChange={(e) => update("customLocation", e.target.value.replace(/[^a-zA-Z\s]/g, ""))} className={`${inputClass} mt-3`} autoFocus />
           )}
-
-          {/* Custom city input — shown when "Other" state is picked */}
           {isOtherState && (
-            <input
-              type="text"
-              required
-              placeholder={t.regCustomLocationPlaceholder}
-              value={form.customLocation}
-              onChange={(e) => update("customLocation", e.target.value.replace(/[^a-zA-Z\s]/g, ""))}
-              className={`${inputClass} mt-3`}
-            />
+            <input type="text" required placeholder={t.regCustomLocationPlaceholder} value={form.customLocation} onChange={(e) => update("customLocation", e.target.value.replace(/[^a-zA-Z\s]/g, ""))} className={`${inputClass} mt-3`} />
           )}
         </Field>
         <Field label={t.regRate}>
@@ -367,20 +323,11 @@ export default function RegisterForm() {
         </Field>
       </div>
 
-      {/* Current location — where the machine physically is right now */}
+      {/* Current location */}
       <Field label="Current location of machine">
-        <input
-          type="text"
-          placeholder="e.g. Site near Bypass Road, Rau"
-          value={form.currentLocation}
-          onChange={(e) => update("currentLocation", e.target.value)}
-          className={inputClass}
-        />
-        <p className="mt-1.5 text-xs text-neutral-400">
-          Lets contractors know where the machine is right now (site, area, or landmark).
-        </p>
+        <input type="text" placeholder="e.g. Site near Bypass Road, Rau" value={form.currentLocation} onChange={(e) => update("currentLocation", e.target.value)} className={inputClass} />
+        <p className="mt-1.5 text-xs text-neutral-400">Lets contractors know where the machine is right now (site, area, or landmark).</p>
       </Field>
-
 
       {/* Hours used + Availability */}
       <div className="grid gap-6 sm:grid-cols-2">
@@ -415,7 +362,7 @@ export default function RegisterForm() {
         </div>
       )}
 
-      {/* Owner details — pre-filled from account, read-only */}
+      {/* Owner details */}
       <div className="grid gap-6 sm:grid-cols-2">
         <Field label="Owner name">
           <input type="text" required placeholder={t.regOwnerNamePlaceholder} value={form.ownerName} onChange={(e) => update("ownerName", e.target.value.replace(/[0-9]/g, ""))} className={inputClass} />

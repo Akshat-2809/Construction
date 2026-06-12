@@ -16,7 +16,6 @@ const API_URL = process.env.NEXT_PUBLIC_API_URL;
 type Tab = "login" | "register";
 type Step = "form" | "otp";
 
-// Suspense wrapper required by Next.js app router for useSearchParams()
 export default function AuthPage() {
   return (
     <Suspense fallback={<div className="flex min-h-[80vh] items-center justify-center"><div className="h-8 w-8 animate-spin rounded-full border-2 border-neutral-200 border-t-ink" /></div>}>
@@ -76,12 +75,10 @@ function AuthPageInner() {
 
     setSendingOtp(true);
     try {
-      // Check if phone exists in our DB first
       const checkRes = await fetch(`${API_URL}/api/auth/check-phone`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ phone }),
-        credentials: "include",
       });
       const { exists } = await checkRes.json();
 
@@ -96,7 +93,6 @@ function AuthPageInner() {
         return;
       }
 
-      // Send OTP via Firebase
       if (recaptchaRef.current) {
         recaptchaRef.current.clear();
         recaptchaRef.current = null;
@@ -125,21 +121,16 @@ function AuthPageInner() {
     setVerifying(true);
     setOtpError("");
     try {
-      // Verify OTP with Firebase
       await confirmationRef.current.confirm(otp);
 
-      // OTP good — call our backend to create session
-      const endpoint =
-        tab === "register" ? "/api/auth/register" : "/api/auth/login";
-      const body =
-        tab === "register" ? { name: name.trim(), phone } : { phone };
+      const endpoint = tab === "register" ? "/api/auth/register" : "/api/auth/login";
+      const body = tab === "register" ? { name: name.trim(), phone } : { phone };
 
       setSubmitting(true);
       const res = await fetch(`${API_URL}${endpoint}`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(body),
-        credentials: "include",
       });
 
       if (!res.ok) {
@@ -147,13 +138,12 @@ function AuthPageInner() {
         throw new Error(data.message || "Something went wrong");
       }
 
-      const userData = await res.json();
-      login(userData);
+      // ✅ Fixed: destructure token + user from response and pass both to login()
+      const { token, user: userData } = await res.json();
+      login(userData, token);
       router.push(redirect);
     } catch (err) {
-      setOtpError(
-        err instanceof Error ? err.message : "Invalid OTP. Please try again."
-      );
+      setOtpError(err instanceof Error ? err.message : "Invalid OTP. Please try again.");
     } finally {
       setVerifying(false);
       setSubmitting(false);
@@ -171,7 +161,6 @@ function AuthPageInner() {
     <div className="flex min-h-[80vh] items-center justify-center px-6 py-16">
       <div className="w-full max-w-md">
 
-        {/* Logo */}
         <div className="mb-8 text-center">
           <Link href="/" className="inline-flex items-center gap-2.5">
             <span className="flex h-10 w-10 items-center justify-center rounded-lg bg-ink text-base font-bold text-hivis">
@@ -184,19 +173,14 @@ function AuthPageInner() {
           </p>
         </div>
 
-        {/* Card */}
         <div className="rounded-2xl border border-neutral-200 bg-white p-8 shadow-sm">
-
-          {/* Tabs */}
           <div className="mb-8 flex rounded-xl border border-neutral-200 bg-neutral-50 p-1">
             {(["login", "register"] as Tab[]).map((t) => (
               <button
                 key={t}
                 onClick={() => switchTab(t)}
                 className={`flex-1 rounded-lg py-2.5 text-sm font-semibold transition-all duration-200 ${
-                  tab === t
-                    ? "bg-white text-ink shadow-sm"
-                    : "text-neutral-500 hover:text-neutral-700"
+                  tab === t ? "bg-white text-ink shadow-sm" : "text-neutral-500 hover:text-neutral-700"
                 }`}
               >
                 {t === "login" ? "Log in" : "Register"}
@@ -204,21 +188,16 @@ function AuthPageInner() {
             ))}
           </div>
 
-          {/* Form step */}
           {step === "form" && (
             <div className="space-y-4">
               {tab === "register" && (
                 <div>
-                  <label className="mb-1.5 block text-sm font-semibold text-ink">
-                    Your name
-                  </label>
+                  <label className="mb-1.5 block text-sm font-semibold text-ink">Your name</label>
                   <input
                     type="text"
                     placeholder="e.g. Rajesh Kumar"
                     value={name}
-                    onChange={(e) =>
-                      setName(e.target.value.replace(/[0-9]/g, ""))
-                    }
+                    onChange={(e) => setName(e.target.value.replace(/[0-9]/g, ""))}
                     className={inputClass}
                     autoFocus
                   />
@@ -226,9 +205,7 @@ function AuthPageInner() {
               )}
 
               <div>
-                <label className="mb-1.5 block text-sm font-semibold text-ink">
-                  Phone number
-                </label>
+                <label className="mb-1.5 block text-sm font-semibold text-ink">Phone number</label>
                 <div className="flex">
                   <span className="inline-flex items-center rounded-l-xl border border-r-0 border-neutral-300 bg-neutral-50 px-3 text-sm text-neutral-500">
                     +91
@@ -237,9 +214,7 @@ function AuthPageInner() {
                     type="tel"
                     placeholder="9980952438"
                     value={phone}
-                    onChange={(e) =>
-                      setPhone(e.target.value.replace(/\D/g, "").slice(0, 10))
-                    }
+                    onChange={(e) => setPhone(e.target.value.replace(/\D/g, "").slice(0, 10))}
                     maxLength={10}
                     inputMode="numeric"
                     className={`${inputClass} rounded-l-none border-l-0`}
@@ -248,9 +223,7 @@ function AuthPageInner() {
               </div>
 
               {error && (
-                <p className="rounded-lg bg-red-50 px-4 py-3 text-sm text-red-600">
-                  {error}
-                </p>
+                <p className="rounded-lg bg-red-50 px-4 py-3 text-sm text-red-600">{error}</p>
               )}
 
               <div id="recaptcha-container" />
@@ -265,31 +238,14 @@ function AuthPageInner() {
 
               <p className="text-center text-sm text-neutral-500">
                 {tab === "login" ? (
-                  <>
-                    No account?{" "}
-                    <button
-                      onClick={() => switchTab("register")}
-                      className="font-semibold text-ink hover:underline"
-                    >
-                      Register here
-                    </button>
-                  </>
+                  <>No account?{" "}<button onClick={() => switchTab("register")} className="font-semibold text-ink hover:underline">Register here</button></>
                 ) : (
-                  <>
-                    Already have an account?{" "}
-                    <button
-                      onClick={() => switchTab("login")}
-                      className="font-semibold text-ink hover:underline"
-                    >
-                      Log in
-                    </button>
-                  </>
+                  <>Already have an account?{" "}<button onClick={() => switchTab("login")} className="font-semibold text-ink hover:underline">Log in</button></>
                 )}
               </p>
             </div>
           )}
 
-          {/* OTP step */}
           {step === "otp" && (
             <div className="space-y-4">
               <div className="rounded-xl border border-neutral-200 bg-neutral-50 px-4 py-3 text-center">
@@ -298,27 +254,21 @@ function AuthPageInner() {
               </div>
 
               <div>
-                <label className="mb-1.5 block text-sm font-semibold text-ink">
-                  Enter OTP
-                </label>
+                <label className="mb-1.5 block text-sm font-semibold text-ink">Enter OTP</label>
                 <input
                   type="text"
                   inputMode="numeric"
                   maxLength={6}
                   placeholder="• • • • • •"
                   value={otp}
-                  onChange={(e) =>
-                    setOtp(e.target.value.replace(/\D/g, "").slice(0, 6))
-                  }
+                  onChange={(e) => setOtp(e.target.value.replace(/\D/g, "").slice(0, 6))}
                   className="w-full rounded-xl border border-neutral-300 bg-white px-4 py-3.5 text-center text-xl font-bold tracking-[0.5em] text-ink outline-none transition-colors focus:border-ink"
                   autoFocus
                 />
               </div>
 
               {otpError && (
-                <p className="rounded-lg bg-red-50 px-4 py-3 text-sm text-red-600">
-                  {otpError}
-                </p>
+                <p className="rounded-lg bg-red-50 px-4 py-3 text-sm text-red-600">{otpError}</p>
               )}
 
               <button
@@ -327,30 +277,15 @@ function AuthPageInner() {
                 className="w-full rounded-full bg-hivis py-3.5 text-sm font-bold text-ink transition-all hover:bg-hivis-dark hover:-translate-y-0.5 disabled:opacity-60 disabled:translate-y-0"
               >
                 {verifying || submitting
-                  ? tab === "register"
-                    ? "Creating account…"
-                    : "Logging in…"
-                  : tab === "register"
-                  ? "Create account"
-                  : "Log in"}
+                  ? tab === "register" ? "Creating account…" : "Logging in…"
+                  : tab === "register" ? "Create account" : "Log in"}
               </button>
 
               <div className="flex items-center justify-between text-sm">
-                <button
-                  onClick={() => {
-                    setStep("form");
-                    setOtp("");
-                    setOtpError("");
-                  }}
-                  className="text-neutral-500 hover:text-ink"
-                >
+                <button onClick={() => { setStep("form"); setOtp(""); setOtpError(""); }} className="text-neutral-500 hover:text-ink">
                   ← Change number
                 </button>
-                <button
-                  onClick={resendOtp}
-                  disabled={sendingOtp}
-                  className="font-semibold text-ink hover:underline disabled:opacity-50"
-                >
+                <button onClick={resendOtp} disabled={sendingOtp} className="font-semibold text-ink hover:underline disabled:opacity-50">
                   Resend OTP
                 </button>
               </div>
@@ -366,5 +301,4 @@ function AuthPageInner() {
   );
 }
 
-const inputClass =
-  "w-full rounded-xl border border-neutral-300 bg-white px-4 py-3 text-ink outline-none transition-colors placeholder:text-neutral-400 focus:border-ink";
+const inputClass = "w-full rounded-xl border border-neutral-300 bg-white px-4 py-3 text-ink outline-none transition-colors placeholder:text-neutral-400 focus:border-ink";
