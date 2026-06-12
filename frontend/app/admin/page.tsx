@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useRequireAdmin } from "@/hooks/useRequireAdmin";
+import { useAuth } from "@/context/AuthContext";
 import {
   PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend,
 } from "recharts";
@@ -42,6 +43,7 @@ type Tab = "overview" | "users" | "machines" | "requests";
 
 export default function AdminPage() {
   const { user, loading: authLoading } = useRequireAdmin();
+  const { getAuthHeader } = useAuth();
   const [tab, setTab] = useState<Tab>("overview");
 
   const [stats, setStats] = useState<Stats | null>(null);
@@ -57,11 +59,13 @@ export default function AdminPage() {
 
     async function loadAll() {
       try {
+        const headers = { ...getAuthHeader() };
+
         const [statsRes, usersRes, machinesRes, requestsRes] = await Promise.all([
-          fetch(`${API_URL}/api/admin/stats`, { credentials: "include" }),
-          fetch(`${API_URL}/api/admin/users`, { credentials: "include" }),
-          fetch(`${API_URL}/api/admin/machines`, { credentials: "include" }),
-          fetch(`${API_URL}/api/admin/requests`, { credentials: "include" }),
+          fetch(`${API_URL}/api/admin/stats`, { headers }),
+          fetch(`${API_URL}/api/admin/users`, { headers }),
+          fetch(`${API_URL}/api/admin/machines`, { headers }),
+          fetch(`${API_URL}/api/admin/requests`, { headers }),
         ]);
 
         if (!statsRes.ok || !usersRes.ok || !machinesRes.ok || !requestsRes.ok) {
@@ -87,14 +91,14 @@ export default function AdminPage() {
 
     loadAll();
     return () => { cancelled = true; };
-  }, [user]);
+  }, [user, getAuthHeader]);
 
   async function deleteMachine(id: string) {
     if (!confirm("Delete this listing?")) return;
     try {
       const res = await fetch(`${API_URL}/api/admin/machines/${id}`, {
         method: "DELETE",
-        credentials: "include",
+        headers: { ...getAuthHeader() },
       });
       if (!res.ok) throw new Error("Failed to delete");
       setMachines((prev) => prev.filter((m) => m._id !== id));
@@ -108,7 +112,7 @@ export default function AdminPage() {
     try {
       const res = await fetch(`${API_URL}/api/admin/requests/${id}`, {
         method: "DELETE",
-        credentials: "include",
+        headers: { ...getAuthHeader() },
       });
       if (!res.ok) throw new Error("Failed to delete");
       setRequests((prev) => prev.filter((r) => r._id !== id));
@@ -135,13 +139,11 @@ export default function AdminPage() {
   return (
     <div className="mx-auto max-w-7xl px-6 py-10 lg:px-8 lg:py-14">
 
-      {/* Header */}
       <div className="mb-8">
         <h1 className="text-3xl font-bold tracking-tight text-ink">Admin Dashboard</h1>
         <p className="mt-1 text-neutral-500">Live overview of ACE platform data</p>
       </div>
 
-      {/* Loading / Error */}
       {loading && (
         <div className="flex justify-center py-24">
           <div className="h-8 w-8 animate-spin rounded-full border-2 border-neutral-200 border-t-ink" />
@@ -155,7 +157,6 @@ export default function AdminPage() {
 
       {!loading && !error && stats && (
         <>
-          {/* Tabs */}
           <div className="mb-8 flex gap-2 overflow-x-auto rounded-2xl border border-neutral-200 bg-white p-1.5">
             {tabs.map((t) => (
               <button
@@ -170,40 +171,23 @@ export default function AdminPage() {
             ))}
           </div>
 
-          {/* ── OVERVIEW ── */}
+          {/* OVERVIEW */}
           {tab === "overview" && (
             <div className="space-y-8">
-
-              {/* Stat cards */}
               <div className="grid gap-4 sm:grid-cols-3">
                 <StatCard label="Total Users" value={stats.totals.users} sub={`+${stats.thisWeek.users} this week`} />
                 <StatCard label="Total Machines" value={stats.totals.machines} sub={`+${stats.thisWeek.machines} this week`} />
                 <StatCard label="Total Requests" value={stats.totals.requests} sub={`+${stats.thisWeek.requests} this week`} />
               </div>
 
-              {/* Charts */}
               <div className="grid gap-6 lg:grid-cols-2">
-
-                {/* Machines by category — pie */}
                 <div className="rounded-2xl border border-neutral-200 bg-white p-6">
                   <h3 className="mb-4 text-sm font-semibold text-ink">Machines by Category</h3>
-                  {stats.machinesByCategory.length === 0 ? (
-                    <EmptyChart />
-                  ) : (
+                  {stats.machinesByCategory.length === 0 ? <EmptyChart /> : (
                     <ResponsiveContainer width="100%" height={260}>
                       <PieChart>
-                        <Pie
-                          data={stats.machinesByCategory}
-                          dataKey="count"
-                          nameKey="name"
-                          cx="50%"
-                          cy="50%"
-                          outerRadius={90}
-                          label={({ name, value }) => `${name} (${value})`}
-                        >
-                          {stats.machinesByCategory.map((_, i) => (
-                            <Cell key={i} fill={COLORS[i % COLORS.length]} />
-                          ))}
+                        <Pie data={stats.machinesByCategory} dataKey="count" nameKey="name" cx="50%" cy="50%" outerRadius={90} label={({ name, value }) => `${name} (${value})`}>
+                          {stats.machinesByCategory.map((_, i) => <Cell key={i} fill={COLORS[i % COLORS.length]} />)}
                         </Pie>
                         <Tooltip />
                       </PieChart>
@@ -211,12 +195,9 @@ export default function AdminPage() {
                   )}
                 </div>
 
-                {/* Machines by location — bar */}
                 <div className="rounded-2xl border border-neutral-200 bg-white p-6">
                   <h3 className="mb-4 text-sm font-semibold text-ink">Machines by Location</h3>
-                  {stats.machinesByLocation.length === 0 ? (
-                    <EmptyChart />
-                  ) : (
+                  {stats.machinesByLocation.length === 0 ? <EmptyChart /> : (
                     <ResponsiveContainer width="100%" height={260}>
                       <BarChart data={stats.machinesByLocation}>
                         <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
@@ -229,12 +210,9 @@ export default function AdminPage() {
                   )}
                 </div>
 
-                {/* Requests by category — bar */}
                 <div className="rounded-2xl border border-neutral-200 bg-white p-6 lg:col-span-2">
                   <h3 className="mb-4 text-sm font-semibold text-ink">Requests by Category</h3>
-                  {stats.requestsByCategory.length === 0 ? (
-                    <EmptyChart />
-                  ) : (
+                  {stats.requestsByCategory.length === 0 ? <EmptyChart /> : (
                     <ResponsiveContainer width="100%" height={260}>
                       <BarChart data={stats.requestsByCategory}>
                         <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
@@ -251,7 +229,7 @@ export default function AdminPage() {
             </div>
           )}
 
-          {/* ── USERS ── */}
+          {/* USERS */}
           {tab === "users" && (
             <div className="overflow-hidden rounded-2xl border border-neutral-200 bg-white">
               <div className="overflow-x-auto">
@@ -277,11 +255,9 @@ export default function AdminPage() {
                           {new Date(u.createdAt).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })}
                         </td>
                         <td className="px-5 py-3">
-                          {u.isAdmin ? (
-                            <span className="rounded-full bg-yellow-100 px-2.5 py-1 text-xs font-semibold text-yellow-700">Admin</span>
-                          ) : (
-                            <span className="rounded-full bg-neutral-100 px-2.5 py-1 text-xs font-semibold text-neutral-500">User</span>
-                          )}
+                          {u.isAdmin
+                            ? <span className="rounded-full bg-yellow-100 px-2.5 py-1 text-xs font-semibold text-yellow-700">Admin</span>
+                            : <span className="rounded-full bg-neutral-100 px-2.5 py-1 text-xs font-semibold text-neutral-500">User</span>}
                         </td>
                       </tr>
                     ))}
@@ -291,7 +267,7 @@ export default function AdminPage() {
             </div>
           )}
 
-          {/* ── MACHINES ── */}
+          {/* MACHINES */}
           {tab === "machines" && (
             <div className="overflow-hidden rounded-2xl border border-neutral-200 bg-white">
               <div className="overflow-x-auto">
@@ -321,10 +297,7 @@ export default function AdminPage() {
                           {m.createdAt ? new Date(m.createdAt).toLocaleDateString("en-IN", { day: "numeric", month: "short" }) : "-"}
                         </td>
                         <td className="px-5 py-3 text-right">
-                          <button
-                            onClick={() => deleteMachine(m._id!)}
-                            className="rounded-lg px-2 py-1 text-xs font-semibold text-red-500 hover:bg-red-50"
-                          >
+                          <button onClick={() => deleteMachine(m._id!)} className="rounded-lg px-2 py-1 text-xs font-semibold text-red-500 hover:bg-red-50">
                             Delete
                           </button>
                         </td>
@@ -336,7 +309,7 @@ export default function AdminPage() {
             </div>
           )}
 
-          {/* ── REQUESTS ── */}
+          {/* REQUESTS */}
           {tab === "requests" && (
             <div className="overflow-hidden rounded-2xl border border-neutral-200 bg-white">
               <div className="overflow-x-auto">
@@ -366,10 +339,7 @@ export default function AdminPage() {
                           {new Date(r.createdAt).toLocaleDateString("en-IN", { day: "numeric", month: "short" })}
                         </td>
                         <td className="px-5 py-3 text-right">
-                          <button
-                            onClick={() => deleteRequest(r._id)}
-                            className="rounded-lg px-2 py-1 text-xs font-semibold text-red-500 hover:bg-red-50"
-                          >
+                          <button onClick={() => deleteRequest(r._id)} className="rounded-lg px-2 py-1 text-xs font-semibold text-red-500 hover:bg-red-50">
                             Delete
                           </button>
                         </td>

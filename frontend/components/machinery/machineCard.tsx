@@ -8,7 +8,7 @@ import { useAuth } from "@/context/AuthContext";
 const API_URL = `${process.env.NEXT_PUBLIC_API_URL}/api/machines`;
 
 export default function MachineCard({ machine }: { machine: Machine }) {
-  const { user } = useAuth();
+  const { user, getAuthHeader } = useAuth();
 
   const [expanded, setExpanded] = useState(false);
   const [editing, setEditing] = useState(false);
@@ -20,9 +20,8 @@ export default function MachineCard({ machine }: { machine: Machine }) {
   const [form, setForm] = useState({
     pricePerMonth: String(machine.pricePerMonth ?? ""),
     location: machine.location ?? "",
-    currentLocation: machine.currentLocation ?? "",
-    ownerName: user?.name ?? machine.ownerName ?? "",
-    ownerContact: user?.phone ?? machine.ownerContact ?? "",
+    ownerName: machine.ownerName ?? "",
+    ownerContact: machine.ownerContact ?? "",
     description: machine.description ?? "",
     availability: machine.availability ?? "yes",
     availableFrom: machine.availableFrom
@@ -55,8 +54,7 @@ export default function MachineCard({ machine }: { machine: Machine }) {
       const id = machine._id ?? machine.id;
       const res = await fetch(`${API_URL}/${id}`, {
         method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        credentials: "include",
+        headers: { "Content-Type": "application/json", ...getAuthHeader() },
         body: JSON.stringify({
           ...form,
           pricePerMonth: Number(form.pricePerMonth),
@@ -86,7 +84,7 @@ export default function MachineCard({ machine }: { machine: Machine }) {
       const id = machine._id ?? machine.id;
       const res = await fetch(`${API_URL}/${id}`, {
         method: "DELETE",
-        credentials: "include",
+        headers: { ...getAuthHeader() },
       });
       if (!res.ok) {
         const data = await res.json();
@@ -143,10 +141,6 @@ export default function MachineCard({ machine }: { machine: Machine }) {
           <div className="min-h-0">
             <div className="space-y-2.5 border-t border-neutral-100 pt-4 text-sm">
               <Detail label="Dealer" value={machine.ownerName} />
-
-              {machine.currentLocation && (
-                <Detail label="Currently at" value={machine.currentLocation} />
-              )}
 
               {/* Contact — always visible, blue tick if owner is verified */}
               <div className="flex items-center justify-between">
@@ -261,23 +255,11 @@ export default function MachineCard({ machine }: { machine: Machine }) {
               <EditField label="Location">
                 <input type="text" value={form.location} onChange={(e) => updateForm("location", e.target.value)} className={inputClass} />
               </EditField>
-              <EditField label="Current location of machine">
-                <input
-                  type="text"
-                  placeholder="e.g. Site near Bypass Road, Rau"
-                  value={form.currentLocation}
-                  onChange={(e) => updateForm("currentLocation", e.target.value)}
-                  className={inputClass}
-                />
-                <p className="mt-1.5 text-xs text-neutral-400">Lets contractors know where the machine is right now.</p>
-              </EditField>
               <EditField label="Owner name">
-                <input type="text" value={form.ownerName} readOnly className={`${inputClass} bg-neutral-50 cursor-not-allowed`} />
-                <p className="mt-1.5 text-xs text-neutral-400">From your account</p>
+                <input type="text" value={form.ownerName} onChange={(e) => updateForm("ownerName", e.target.value.replace(/[^a-zA-Z\s]/g, ""))} className={inputClass} />
               </EditField>
               <EditField label="Contact number">
-                <input type="tel" value={form.ownerContact} readOnly className={`${inputClass} bg-neutral-50 cursor-not-allowed`} />
-                <p className="mt-1.5 text-xs text-neutral-400">From your account — verified via OTP</p>
+                <input type="tel" value={form.ownerContact} onChange={(e) => updateForm("ownerContact", e.target.value.replace(/\D/g, "").slice(0, 10))} maxLength={10} className={inputClass} />
               </EditField>
               <EditField label="Model year">
                 <input type="number" min={1990} max={2030} value={form.modelYear} onChange={(e) => updateForm("modelYear", e.target.value)} className={inputClass} />
