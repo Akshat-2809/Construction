@@ -7,6 +7,7 @@ const connectDB = require("./config/db");
 const machineRoutes = require("./routes/machines");
 const requestRoutes = require("./routes/requests");
 const authRoutes = require("./routes/auth");
+const adminRoutes = require("./routes/admin");
 
 connectDB();
 
@@ -24,16 +25,17 @@ app.use(
       if (allowedOrigins.includes(origin)) return callback(null, true);
       callback(new Error(`CORS blocked: ${origin}`));
     },
-    credentials: true, // required for JWT cookie
+    credentials: true,
   })
 );
 
-app.use(cookieParser()); // before routes so req.cookies works
+app.use(cookieParser());
 app.use(express.json());
 
 app.use("/api/machines", machineRoutes);
 app.use("/api/requests", requestRoutes);
 app.use("/api/auth", authRoutes);
+app.use("/api/admin", adminRoutes);
 
 app.get("/", (req, res) => {
   res.send("ACE backend is running 🚀");

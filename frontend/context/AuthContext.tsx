@@ -6,6 +6,7 @@ interface User {
   _id: string;
   name: string;
   phone: string;
+  isAdmin?: boolean;
 }
 
 interface AuthContextType {
@@ -28,7 +29,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
 
-  // On app load — restore session from cookie
   useEffect(() => {
     async function fetchUser() {
       try {

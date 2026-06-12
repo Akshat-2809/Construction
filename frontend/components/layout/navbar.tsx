@@ -126,6 +126,20 @@ export default function Navbar() {
                       <p className="text-sm font-semibold text-ink">{user.name}</p>
                       <p className="text-xs text-neutral-400">{user.phone}</p>
                     </div>
+
+                    {user.isAdmin && (
+                      <Link
+                        href="/admin"
+                        onClick={() => setUserMenuOpen(false)}
+                        className="flex items-center gap-2 px-4 py-3 text-sm text-neutral-600 hover:bg-neutral-50"
+                      >
+                        <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M9 17.25v1.007a3 3 0 0 1-.879 2.122L7.5 21h9l-.621-.621A3 3 0 0 1 15 18.257V17.25m6-12V15a2.25 2.25 0 0 1-2.25 2.25H5.25A2.25 2.25 0 0 1 3 15V5.25m18 0A2.25 2.25 0 0 0 18.75 3H5.25A2.25 2.25 0 0 0 3 5.25m18 0V12a2.25 2.25 0 0 1-2.25 2.25H5.25A2.25 2.25 0 0 1 3 12V5.25" />
+                        </svg>
+                        Admin Dashboard
+                      </Link>
+                    )}
+
                     <Link
                       href="/my-listings"
                       onClick={() => setUserMenuOpen(false)}
@@ -211,6 +225,20 @@ export default function Navbar() {
                 <p className="truncate text-xs text-neutral-400">{user.phone}</p>
               </div>
             </div>
+          )}
+
+          {/* Admin Dashboard — mobile */}
+          {user?.isAdmin && (
+            <Link
+              href="/admin"
+              onClick={() => setIsOpen(false)}
+              className="flex items-center gap-2 rounded-lg px-3 py-3 text-base font-medium text-neutral-700 hover:bg-mist hover:text-ink"
+            >
+              <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M9 17.25v1.007a3 3 0 0 1-.879 2.122L7.5 21h9l-.621-.621A3 3 0 0 1 15 18.257V17.25m6-12V15a2.25 2.25 0 0 1-2.25 2.25H5.25A2.25 2.25 0 0 1 3 15V5.25m18 0A2.25 2.25 0 0 0 18.75 3H5.25A2.25 2.25 0 0 0 3 5.25m18 0V12a2.25 2.25 0 0 1-2.25 2.25H5.25A2.25 2.25 0 0 1 3 12V5.25" />
+              </svg>
+              Admin Dashboard
+            </Link>
           )}
 
           {/* My listings — mobile */}

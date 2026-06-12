@@ -8,12 +8,14 @@ import {
 } from "@/lib/machineOptions";
 import { useLang } from "@/context/LanguageContext";
 import { translations } from "@/lib/translation";
+import { useAuth } from "@/context/AuthContext";
 
 const API_URL = `${process.env.NEXT_PUBLIC_API_URL}/api/requests`;
 
 export default function RequestForm() {
   const { lang } = useLang();
   const t = translations[lang];
+  const { user } = useAuth();
 
   const [form, setForm] = useState({
     category: "",
@@ -24,8 +26,8 @@ export default function RequestForm() {
     requiredTill: "",
     budgetPerMonth: "",
     description: "",
-    contactName: "",
-    contactNumber: "",
+    contactName: user?.name ?? "",
+    contactNumber: user?.phone ?? "",
   });
 
   const [submitting, setSubmitting] = useState(false);
@@ -97,7 +99,9 @@ export default function RequestForm() {
               setForm({
                 category: "", craneType: "", location: "", customLocation: "",
                 requiredFrom: "", requiredTill: "", budgetPerMonth: "",
-                description: "", contactName: "", contactNumber: "",
+                description: "",
+                contactName: user?.name ?? "",
+                contactNumber: user?.phone ?? "",
               });
             }}
             className="inline-flex items-center justify-center gap-2 rounded-full bg-ink px-6 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-neutral-800"
@@ -223,16 +227,30 @@ export default function RequestForm() {
           />
         </Field>
         <Field label={t.reqContact}>
-          <input
-            type="tel"
-            required
-            maxLength={10}
-            inputMode="numeric"
-            placeholder={t.reqContactPlaceholder}
-            value={form.contactNumber}
-            onChange={(e) => update("contactNumber", e.target.value.replace(/\D/g, "").slice(0, 10))}
-            className={inputClass}
-          />
+          <div className="relative">
+            <input
+              type="tel"
+              required
+              readOnly={!!user}
+              maxLength={10}
+              inputMode="numeric"
+              placeholder={t.reqContactPlaceholder}
+              value={form.contactNumber}
+              onChange={(e) => update("contactNumber", e.target.value.replace(/\D/g, "").slice(0, 10))}
+              className={`${inputClass} ${user ? "bg-neutral-50 pr-24" : ""}`}
+            />
+            {user && (
+              <span className="absolute right-3 top-1/2 -translate-y-1/2 inline-flex items-center gap-1 rounded-full bg-blue-50 px-2.5 py-1 text-xs font-semibold text-blue-600">
+                <svg className="h-3.5 w-3.5" fill="currentColor" viewBox="0 0 20 20">
+                  <path fillRule="evenodd" d="M16.704 4.153a.75.75 0 0 1 .143 1.052l-8 10.5a.75.75 0 0 1-1.127.075l-4.5-4.5a.75.75 0 0 1 1.06-1.06l3.894 3.893 7.48-9.817a.75.75 0 0 1 1.05-.143Z" clipRule="evenodd" />
+                </svg>
+                Verified
+              </span>
+            )}
+          </div>
+          {user && (
+            <p className="mt-1.5 text-xs text-neutral-400">Phone from your account — verified via OTP</p>
+          )}
         </Field>
       </div>
 

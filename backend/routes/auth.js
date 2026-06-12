@@ -22,7 +22,6 @@ function issueToken(user, res) {
 }
 
 // POST /api/auth/check-phone
-// Used before sending OTP — checks if phone is registered or not
 router.post("/check-phone", async (req, res) => {
   try {
     const { phone } = req.body;
@@ -35,7 +34,6 @@ router.post("/check-phone", async (req, res) => {
 });
 
 // POST /api/auth/register
-// Called after OTP verified on frontend — creates account + issues cookie
 router.post("/register", async (req, res) => {
   try {
     const { name, phone } = req.body;
@@ -54,14 +52,13 @@ router.post("/register", async (req, res) => {
     });
 
     issueToken(user, res);
-    res.status(201).json({ _id: user._id, name: user.name, phone: user.phone });
+    res.status(201).json({ _id: user._id, name: user.name, phone: user.phone, isAdmin: user.isAdmin });
   } catch (err) {
     res.status(500).json({ message: "Registration failed", error: err.message });
   }
 });
 
 // POST /api/auth/login
-// Called after OTP verified on frontend — issues cookie for existing user
 router.post("/login", async (req, res) => {
   try {
     const { phone } = req.body;
@@ -73,14 +70,13 @@ router.post("/login", async (req, res) => {
       return res.status(404).json({ message: "Phone not registered. Please create an account." });
 
     issueToken(user, res);
-    res.json({ _id: user._id, name: user.name, phone: user.phone });
+    res.json({ _id: user._id, name: user.name, phone: user.phone, isAdmin: user.isAdmin });
   } catch (err) {
     res.status(500).json({ message: "Login failed", error: err.message });
   }
 });
 
 // GET /api/auth/me
-// Returns current logged-in user from cookie — used on app load
 router.get("/me", authMiddleware, async (req, res) => {
   try {
     const user = await User.findById(req.user._id).select("-__v");

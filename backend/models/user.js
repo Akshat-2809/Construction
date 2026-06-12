@@ -15,7 +15,11 @@ const userSchema = new mongoose.Schema(
     },
     phoneVerified: {
       type: Boolean,
-      default: true, // always true since they verified via OTP to register
+      default: true,
+    },
+    isAdmin: {
+      type: Boolean,
+      default: false,
     },
   },
   { timestamps: true }

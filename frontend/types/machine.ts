@@ -23,6 +23,7 @@ export interface Machine {
   model: string;
   image: string;
   location: string;
+  currentLocation?: string;
   pricePerMonth: number;
   modelYear?: number;
   hoursUsed?: number;

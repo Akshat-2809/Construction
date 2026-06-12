@@ -10,7 +10,8 @@ import {
   companiesByCraneType,
   modelsByCategoryAndCompany,
   craneModelsByTypeAndCompany,
-  locations,
+  statesAndCities,
+  states,
 } from "@/lib/machineOptions";
 import { useLang } from "@/context/LanguageContext";
 import { translations } from "@/lib/translation";
@@ -49,8 +50,11 @@ export default function RegisterForm() {
     craneType: "",
     company: "",
     model: "",
+    state: "",
+    customState: "",
     location: "",
     customLocation: "",
+    currentLocation: "",
     pricePerMonth: "",
     modelYear: "",
     hoursUsed: "",
@@ -80,8 +84,14 @@ export default function RegisterForm() {
   const [error, setError] = useState("");
 
   const isCrane = form.category === "Crane";
+  const isOtherState = form.state === "Other";
   const isOtherLocation = form.location === "Other";
   const defaultImage = categoryImageMap[form.category] ?? "/excavator.webp";
+
+  // Cities available for the currently selected state
+  const availableCities = !isOtherState && form.state
+    ? statesAndCities[form.state] ?? []
+    : [];
 
   const availableCompanies = isCrane
     ? form.craneType ? companiesByCraneType[form.craneType] ?? [] : []
@@ -104,14 +114,18 @@ export default function RegisterForm() {
     if (file) setPreview(URL.createObjectURL(file));
   }
 
-  const finalLocation = isOtherLocation
-    ? form.customLocation.trim()
-    : form.location;
+  const finalState = isOtherState ? form.customState.trim() : form.state;
+  const finalCity = isOtherLocation ? form.customLocation.trim() : form.location;
+  const finalLocation = [finalCity, finalState].filter(Boolean).join(", ");
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (!user) {
       router.push("/auth?redirect=/machinery/register");
+      return;
+    }
+    if (isOtherState && !form.customState.trim()) {
+      setError("Please enter your state name.");
       return;
     }
     if (isOtherLocation && !form.customLocation.trim()) {
@@ -129,6 +143,7 @@ export default function RegisterForm() {
         body: JSON.stringify({
           ...form,
           location: finalLocation,
+          currentLocation: form.currentLocation.trim(),
           craneType: isCrane ? form.craneType : null,
           pricePerMonth: Number(form.pricePerMonth),
           modelYear: Number(form.modelYear),
@@ -184,7 +199,8 @@ export default function RegisterForm() {
               setSubmitted(false);
               setForm({
                 category: "", craneType: "", company: "", model: "",
-                location: "", customLocation: "", pricePerMonth: "",
+                state: "", customState: "", location: "", customLocation: "",
+                currentLocation: "", pricePerMonth: "",
                 modelYear: "", hoursUsed: "",
                 ownerName: user?.name ?? "",
                 ownerContact: user?.phone ?? "",
@@ -278,36 +294,93 @@ export default function RegisterForm() {
         </Field>
       </div>
 
-      {/* Location + Price */}
+      {/* Location (state + city) + Price */}
       <div className="grid gap-6 sm:grid-cols-2">
         <Field label={t.regLocation}>
-          <select required value={form.location} onChange={(e) => { update("location", e.target.value); update("customLocation", ""); }} className={selectClass}>
-            <option value="" disabled>{t.regSelectLocation}</option>
-            {locations
-              .filter((l: string) => l !== "Other")
-              .map((l: string) => <option key={l} value={l}>{l}</option>)}
-            <option value="Other">Other (enter city name)</option>
-          </select>
+          <div className="grid gap-3 sm:grid-cols-2">
+            <select
+              required
+              value={form.state}
+              onChange={(e) => {
+                update("state", e.target.value);
+                update("location", "");
+                update("customLocation", "");
+                update("customState", "");
+              }}
+              className={selectClass}
+            >
+              <option value="" disabled>Select state</option>
+              {states.map((s: string) => <option key={s} value={s}>{s}</option>)}
+            </select>
+
+            {isOtherState ? (
+              <input
+                type="text"
+                required
+                placeholder="Enter your state name"
+                value={form.customState}
+                onChange={(e) => update("customState", e.target.value.replace(/[^a-zA-Z\s]/g, ""))}
+                className={inputClass}
+              />
+            ) : (
+              <select
+                required
+                value={form.location}
+                disabled={!form.state}
+                onChange={(e) => { update("location", e.target.value); update("customLocation", ""); }}
+                className={`${selectClass} disabled:cursor-not-allowed disabled:bg-neutral-100 disabled:text-neutral-400`}
+              >
+                <option value="" disabled>{form.state ? t.regSelectLocation : "Select state first"}</option>
+                {availableCities.map((c: string) => <option key={c} value={c}>{c}</option>)}
+                <option value="Other">Other (enter city name)</option>
+              </select>
+            )}
+          </div>
+
+          {/* Custom city input — shown when "Other" city is picked under a real state */}
+          {!isOtherState && isOtherLocation && (
+            <input
+              type="text"
+              required
+              placeholder={t.regCustomLocationPlaceholder}
+              value={form.customLocation}
+              onChange={(e) => update("customLocation", e.target.value.replace(/[^a-zA-Z\s]/g, ""))}
+              className={`${inputClass} mt-3`}
+              autoFocus
+            />
+          )}
+
+          {/* Custom city input — shown when "Other" state is picked */}
+          {isOtherState && (
+            <input
+              type="text"
+              required
+              placeholder={t.regCustomLocationPlaceholder}
+              value={form.customLocation}
+              onChange={(e) => update("customLocation", e.target.value.replace(/[^a-zA-Z\s]/g, ""))}
+              className={`${inputClass} mt-3`}
+            />
+          )}
         </Field>
         <Field label={t.regRate}>
           <input type="number" required min={0} placeholder="e.g. 15000" value={form.pricePerMonth} onChange={(e) => update("pricePerMonth", e.target.value)} className={inputClass} />
         </Field>
       </div>
 
-      {/* Custom city input — full width, shown only when Other is selected */}
-      {isOtherLocation && (
-        <Field label="Enter your city">
-          <input
-            type="text"
-            required
-            placeholder={t.regCustomLocationPlaceholder}
-            value={form.customLocation}
-            onChange={(e) => update("customLocation", e.target.value.replace(/[^a-zA-Z\s]/g, ""))}
-            className={inputClass}
-            autoFocus
-          />
-        </Field>
-      )}
+      {/* Current location — where the machine physically is right now */}
+      <Field label="Current location of machine">
+        <input
+          type="text"
+          placeholder="e.g. Site near Bypass Road, Rau"
+          value={form.currentLocation}
+          onChange={(e) => update("currentLocation", e.target.value)}
+          className={inputClass}
+        />
+        <p className="mt-1.5 text-xs text-neutral-400">
+          Lets contractors know where the machine is right now (site, area, or landmark).
+        </p>
+      </Field>
+
 
       {/* Hours used + Availability */}
       <div className="grid gap-6 sm:grid-cols-2">

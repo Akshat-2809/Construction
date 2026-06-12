@@ -21,6 +21,7 @@ const machineSchema = new mongoose.Schema(
     model: { type: String, required: true },
     image: { type: String, default: "/excavator.webp" },
     location: { type: String, required: true },
+    currentLocation: { type: String, default: "" },
     pricePerMonth: { type: Number, required: true },
     modelYear: { type: Number },
     hoursUsed: { type: Number },

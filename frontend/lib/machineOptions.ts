@@ -121,12 +121,43 @@ export const companies = [
   ]),
 ];
 
+// Cities grouped by state — used for the cascading State → City pickers
+export const statesAndCities: { [key: string]: string[] } = {
+  Rajasthan: [
+    "Jaipur",
+    "Jodhpur",
+    "Udaipur",
+    "Kota",
+    "Ajmer",
+    "Bikaner",
+    "Alwar",
+    "Bhilwara",
+    "Sikar",
+    "Pali",
+    "Bharatpur",
+    "Sri Ganganagar",
+  ],
+  "Madhya Pradesh": [
+    "Indore",
+    "Bhopal",
+    "Dewas",
+    "Ujjain",
+    "Pithampur",
+    "Gwalior",
+    "Jabalpur",
+    "Ratlam",
+    "Sagar",
+    "Rewa",
+    "Satna",
+  ],
+};
+
+// States available in the location picker — "Other" lets the user type their own state
+export const states = [...Object.keys(statesAndCities), "Other"];
+
+// Flat list of every city (kept for places like the Request form that don't need
+// the state → city cascade)
 export const locations = [
-  "Indore",
-  "Dewas",
-  "Ujjain",
-  "Bhopal",
-  "Pithampur",
-  "Gwalior",
+  ...new Set(Object.values(statesAndCities).flat()),
   "Other",
 ];
