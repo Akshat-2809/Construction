@@ -235,7 +235,7 @@ function AuthPageInner() {
                   </span>
                   <input
                     type="tel"
-                    placeholder="98765 43210"
+                    placeholder="9980952438"
                     value={phone}
                     onChange={(e) =>
                       setPhone(e.target.value.replace(/\D/g, "").slice(0, 10))
@@ -359,7 +359,7 @@ function AuthPageInner() {
         </div>
 
         <p className="mt-6 text-center text-xs text-neutral-400">
-          By continuing you agree to ACE&apos;s terms of serviceapos;s terms of service.
+          By continuing you agree to ACE&apos;s Terms of Service.
         </p>
       </div>
     </div>

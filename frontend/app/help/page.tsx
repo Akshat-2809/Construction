@@ -141,7 +141,7 @@ function ContactForm() {
             <input
               type="tel"
               required
-              placeholder="98765 43210"
+              placeholder="9980952438"
               value={form.phone}
               onChange={(e) => update("phone", e.target.value.replace(/\D/g, "").slice(0, 10))}
               inputMode="numeric"

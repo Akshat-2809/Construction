@@ -27,7 +27,7 @@ export default function ContactPage() {
       `Topic: ${form.topic}\n\n` +
       `Message:\n${form.message}`
     );
-    window.open(`https://wa.me/919876543210?text=${text}`, "_blank");
+    window.open(`https://wa.me/919980952438?text=${text}`, "_blank");
     setSubmitted(true);
   }
 
@@ -63,7 +63,7 @@ export default function ContactPage() {
                   </svg>
                 ),
                 label: "Phone",
-                value: "+91 98765 43210",
+                value: "+91 9980952438",
               },
               {
                 icon: (
@@ -163,7 +163,7 @@ export default function ContactPage() {
                   </Field>
                   <Field label="Phone number">
                     <input
-                      type="tel" required maxLength={10} inputMode="numeric" placeholder="+91 98765 43210"
+                      type="tel" required maxLength={10} inputMode="numeric" placeholder="+91 9980952438"
                       value={form.phone} onChange={(e) => update("phone", e.target.value.replace(/\D/g, "").slice(0, 10))}
                       className={inputClass}
                     />

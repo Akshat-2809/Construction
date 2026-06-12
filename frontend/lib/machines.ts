@@ -11,7 +11,7 @@ export const machines: Machine[] = [
     pricePerMonth: 18500,
     availability: "yes",
     ownerName: "XYZ Construction",
-    ownerContact: "+91 98765 43210",
+    ownerContact: "+91 9980952438",
     description:
       "20-ton crawler excavator, ideal for digging, trenching, and heavy site work. Operator available on request.",
     modelYear: 2020,
