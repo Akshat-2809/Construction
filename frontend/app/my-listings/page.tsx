@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { useRequireAuth } from "@/hooks/useRequireAuth";
 import { locations } from "@/lib/machineOptions";
 import { useLang } from "@/context/LanguageContext";
@@ -19,6 +20,41 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
     <div>
       <label className="mb-2 block text-sm font-semibold text-ink">{label}</label>
       {children}
+    </div>
+  );
+}
+
+function CraneLoader() {
+  return (
+    <div className="flex flex-col items-center justify-center py-24 gap-6">
+      <style>{`
+        @keyframes crane-swing {
+          0%, 100% { transform: rotate(-6deg); }
+          50%       { transform: rotate(6deg); }
+        }
+        @keyframes crane-dot {
+          0%, 100% { transform: translateY(0); opacity: 0.35; }
+          50%       { transform: translateY(-7px); opacity: 1; }
+        }
+      `}</style>
+      <div style={{ animation: "crane-swing 2s ease-in-out infinite", transformOrigin: "top center" }}>
+        <Image src="/crane-loader.webp" alt="Loading…" width={100} height={100} style={{ objectFit: "contain" }} />
+      </div>
+      <div className="flex items-center gap-2">
+        {[0, 1, 2].map((i) => (
+          <span
+            key={i}
+            style={{
+              display: "inline-block",
+              width: 8,
+              height: 8,
+              borderRadius: "50%",
+              backgroundColor: "#FFD000",
+              animation: `crane-dot 0.9s ease-in-out ${i * 0.18}s infinite`,
+            }}
+          />
+        ))}
+      </div>
     </div>
   );
 }
@@ -161,11 +197,7 @@ export default function MyListingsPage() {
   const todayStr = new Date().toISOString().split("T")[0];
 
   if (authLoading || !user) {
-    return (
-      <div className="flex min-h-[80vh] items-center justify-center">
-        <div className="h-8 w-8 animate-spin rounded-full border-2 border-neutral-200 border-t-ink" />
-      </div>
-    );
+    return <CraneLoader />;
   }
 
   return (
@@ -189,11 +221,7 @@ export default function MyListingsPage() {
       </div>
 
       {/* Loading */}
-      {loading && (
-        <div className="flex justify-center py-24">
-          <div className="h-8 w-8 animate-spin rounded-full border-2 border-neutral-200 border-t-ink" />
-        </div>
-      )}
+      {loading && <CraneLoader />}
 
       {/* Error */}
       {error && !loading && (
@@ -222,60 +250,76 @@ export default function MyListingsPage() {
           {machines.map((machine) => (
             <div
               key={machine._id}
-              className="flex flex-col rounded-2xl border border-neutral-200 bg-white p-5 transition-all hover:shadow-md"
+              className="flex flex-col overflow-hidden rounded-2xl border border-neutral-200 bg-white transition-all hover:shadow-md"
             >
-              <div className="mb-3 flex items-center justify-between">
-                <span className="rounded-full bg-neutral-100 px-3 py-1 text-xs font-semibold text-neutral-600">
+              {/* Image */}
+              <div className="relative aspect-[4/3] w-full overflow-hidden bg-neutral-100">
+                <Image
+                  src={machine.image || "/excavator.webp"}
+                  alt={`${machine.company} ${machine.model}`}
+                  fill
+                  sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+                  className="object-cover"
+                />
+                <span className="absolute left-3 top-3 rounded-full bg-white/90 px-3 py-1 text-xs font-medium text-ink backdrop-blur-sm">
                   {machine.category}
-                </span>
-                <span className={`flex items-center gap-1.5 text-xs font-semibold ${
-                  machine.availability === "yes" ? "text-green-600" : "text-orange-500"
-                }`}>
-                  <span className={`h-2 w-2 rounded-full ${
-                    machine.availability === "yes" ? "bg-green-500" : "bg-orange-400"
-                  }`} />
-                  {machine.availability === "yes" ? t.myListingsAvailable : t.myListingsBusy}
                 </span>
               </div>
 
-              <p className="font-semibold text-ink">
-                {machine.company} {machine.model}
-              </p>
-              <p className="mt-0.5 text-sm text-neutral-500">{machine.location}</p>
+              <div className="flex flex-1 flex-col p-5">
+                <div className="mb-3 flex items-center justify-between">
+                  <span className="rounded-full bg-neutral-100 px-3 py-1 text-xs font-semibold text-neutral-600">
+                    {machine.category}
+                  </span>
+                  <span className={`flex items-center gap-1.5 text-xs font-semibold ${
+                    machine.availability === "yes" ? "text-green-600" : "text-orange-500"
+                  }`}>
+                    <span className={`h-2 w-2 rounded-full ${
+                      machine.availability === "yes" ? "bg-green-500" : "bg-orange-400"
+                    }`} />
+                    {machine.availability === "yes" ? t.myListingsAvailable : t.myListingsBusy}
+                  </span>
+                </div>
 
-              <p className="mt-3 text-lg font-bold text-ink">
-                ₹{machine.pricePerMonth?.toLocaleString("en-IN")}
-                <span className="text-sm font-normal text-neutral-400">/mo</span>
-              </p>
+                <p className="font-semibold text-ink">
+                  {machine.company} {machine.model}
+                </p>
+                <p className="mt-0.5 text-sm text-neutral-500">{machine.location}</p>
 
-              <p className="mt-3 border-t border-neutral-100 pt-3 text-xs text-neutral-400">
-                {t.myListingsListed}{" "}
-                {new Date(machine.createdAt!).toLocaleDateString("en-IN", {
-                  day: "numeric",
-                  month: "short",
-                  year: "numeric",
-                })}
-              </p>
+                <p className="mt-3 text-lg font-bold text-ink">
+                  ₹{machine.pricePerMonth?.toLocaleString("en-IN")}
+                  <span className="text-sm font-normal text-neutral-400">/mo</span>
+                </p>
 
-              <div className="mt-4 flex gap-2">
-                <button
-                  onClick={() => openEdit(machine)}
-                  className="flex flex-1 items-center justify-center gap-1.5 rounded-xl border border-neutral-200 py-2 text-sm font-semibold text-ink transition-colors hover:bg-neutral-50"
-                >
-                  <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125" />
-                  </svg>
-                  {t.myListingsEdit}
-                </button>
-                <button
-                  onClick={() => setDeleteTarget(machine)}
-                  className="flex flex-1 items-center justify-center gap-1.5 rounded-xl border border-red-100 py-2 text-sm font-semibold text-red-500 transition-colors hover:bg-red-50"
-                >
-                  <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0" />
-                  </svg>
-                  {t.myListingsDelete}
-                </button>
+                <p className="mt-3 border-t border-neutral-100 pt-3 text-xs text-neutral-400">
+                  {t.myListingsListed}{" "}
+                  {new Date(machine.createdAt!).toLocaleDateString("en-IN", {
+                    day: "numeric",
+                    month: "short",
+                    year: "numeric",
+                  })}
+                </p>
+
+                <div className="mt-4 flex gap-2">
+                  <button
+                    onClick={() => openEdit(machine)}
+                    className="flex flex-1 items-center justify-center gap-1.5 rounded-xl border border-neutral-200 py-2 text-sm font-semibold text-ink transition-colors hover:bg-neutral-50"
+                  >
+                    <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125" />
+                    </svg>
+                    {t.myListingsEdit}
+                  </button>
+                  <button
+                    onClick={() => setDeleteTarget(machine)}
+                    className="flex flex-1 items-center justify-center gap-1.5 rounded-xl border border-red-100 py-2 text-sm font-semibold text-red-500 transition-colors hover:bg-red-50"
+                  >
+                    <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0" />
+                    </svg>
+                    {t.myListingsDelete}
+                  </button>
+                </div>
               </div>
             </div>
           ))}

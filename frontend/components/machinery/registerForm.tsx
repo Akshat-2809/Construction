@@ -86,6 +86,7 @@ export default function RegisterForm() {
   const isOtherState = form.state === "Other";
   const isOtherLocation = form.location === "Other";
   const defaultImage = categoryImageMap[form.category] ?? "/excavator.webp";
+  const todayStr = new Date().toISOString().split("T")[0];
 
   const availableCities = !isOtherState && form.state
     ? statesAndCities[form.state] ?? []
@@ -123,7 +124,7 @@ export default function RegisterForm() {
       return;
     }
     if (isOtherState && !form.customState.trim()) {
-      setError("Please enter your state name.");
+      setError(t.regErrorState);
       return;
     }
     if (isOtherLocation && !form.customLocation.trim()) {
@@ -214,8 +215,6 @@ export default function RegisterForm() {
     );
   }
 
-  const todayStr = new Date().toISOString().split("T")[0];
-
   return (
     <form onSubmit={handleSubmit} className="space-y-8">
       {/* Photo upload */}
@@ -296,17 +295,17 @@ export default function RegisterForm() {
         <Field label={t.regLocation}>
           <div className="grid gap-3 sm:grid-cols-2">
             <select required value={form.state} onChange={(e) => { update("state", e.target.value); update("location", ""); update("customLocation", ""); update("customState", ""); }} className={selectClass}>
-              <option value="" disabled>Select state</option>
+              <option value="" disabled>{t.regSelectState}</option>
               {states.map((s: string) => <option key={s} value={s}>{s}</option>)}
             </select>
 
             {isOtherState ? (
-              <input type="text" required placeholder="Enter your state name" value={form.customState} onChange={(e) => update("customState", e.target.value.replace(/[^a-zA-Z\s]/g, ""))} className={inputClass} />
+              <input type="text" required placeholder={t.regEnterStateName} value={form.customState} onChange={(e) => update("customState", e.target.value.replace(/[^a-zA-Z\s]/g, ""))} className={inputClass} />
             ) : (
               <select required value={form.location} disabled={!form.state} onChange={(e) => { update("location", e.target.value); update("customLocation", ""); }} className={`${selectClass} disabled:cursor-not-allowed disabled:bg-neutral-100 disabled:text-neutral-400`}>
-                <option value="" disabled>{form.state ? t.regSelectLocation : "Select state first"}</option>
+                <option value="" disabled>{form.state ? t.regSelectLocation : t.regSelectStateFirst}</option>
                 {availableCities.map((c: string) => <option key={c} value={c}>{c}</option>)}
-                <option value="Other">Other (enter city name)</option>
+                <option value="Other">{t.regOtherCityOption}</option>
               </select>
             )}
           </div>
@@ -323,10 +322,11 @@ export default function RegisterForm() {
         </Field>
       </div>
 
+
       {/* Current location */}
-      <Field label="Current location of machine">
-        <input type="text" placeholder="e.g. Site near Bypass Road, Rau" value={form.currentLocation} onChange={(e) => update("currentLocation", e.target.value)} className={inputClass} />
-        <p className="mt-1.5 text-xs text-neutral-400">Lets contractors know where the machine is right now (site, area, or landmark).</p>
+      <Field label={t.regCurrentLocation}>
+        <input type="text" placeholder={t.regCurrentLocationPlaceholder} value={form.currentLocation} onChange={(e) => update("currentLocation", e.target.value)} className={inputClass} />
+        <p className="mt-1.5 text-xs text-neutral-400">{t.regCurrentLocationHint}</p>
       </Field>
 
       {/* Hours used + Availability */}
@@ -364,7 +364,7 @@ export default function RegisterForm() {
 
       {/* Owner details */}
       <div className="grid gap-6 sm:grid-cols-2">
-        <Field label="Owner name">
+        <Field label={t.regOwnerName}>
           <input type="text" required placeholder={t.regOwnerNamePlaceholder} value={form.ownerName} onChange={(e) => update("ownerName", e.target.value.replace(/[0-9]/g, ""))} className={inputClass} />
         </Field>
         <Field label={t.regContact}>
@@ -377,7 +377,7 @@ export default function RegisterForm() {
               Verified
             </span>
           </div>
-          <p className="mt-1.5 text-xs text-neutral-400">Phone from your account — verified via OTP</p>
+          <p className="mt-1.5 text-xs text-neutral-400">{t.regFromAccountVerified}</p>
         </Field>
       </div>
 

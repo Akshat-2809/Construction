@@ -1,6 +1,5 @@
 "use client";
-
-import { createContext, useContext, useState, useEffect } from "react";
+import { createContext, useContext, useState, useEffect, useCallback, useMemo } from "react";
 
 interface User {
   _id: string;
@@ -15,6 +14,7 @@ interface AuthContextType {
   login: (user: User, token: string) => void;
   logout: () => void;
   getAuthHeader: () => Record<string, string>;
+  deleteAccount: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType>({
@@ -23,6 +23,7 @@ const AuthContext = createContext<AuthContextType>({
   login: () => {},
   logout: () => {},
   getAuthHeader: () => ({}),
+  deleteAccount: async () => {},
 });
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL;
@@ -36,7 +37,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       try {
         const token = localStorage.getItem("ace_token");
         if (!token) { setLoading(false); return; }
-
         const res = await fetch(`${API_URL}/api/auth/me`, {
           headers: { Authorization: `Bearer ${token}` },
         });
@@ -54,26 +54,49 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     fetchUser();
   }, []);
 
-  function login(userData: User, token: string) {
+  const login = useCallback((userData: User, token: string) => {
     localStorage.setItem("ace_token", token);
     setUser(userData);
-  }
+  }, []);
 
-  async function logout() {
+  const logout = useCallback(async () => {
     localStorage.removeItem("ace_token");
     setUser(null);
     try {
       await fetch(`${API_URL}/api/auth/logout`, { method: "POST" });
     } catch {}
-  }
+  }, []);
 
-  function getAuthHeader(): Record<string, string> {
+  const getAuthHeader = useCallback((): Record<string, string> => {
     const token = localStorage.getItem("ace_token");
     return token ? { Authorization: `Bearer ${token}` } : {};
-  }
+  }, []);
+
+  const deleteAccount = useCallback(async () => {
+    const token = localStorage.getItem("ace_token");
+    const res = await fetch(`${API_URL}/api/auth/me`, {
+      method: "DELETE",
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    if (!res.ok) {
+      let message = "Failed to delete account";
+      try {
+        const data = await res.json();
+        message = data.message || message;
+      } catch {}
+      throw new Error(message);
+    }
+    localStorage.removeItem("ace_token");
+    setUser(null);
+  }, []);
+
+  const value = useMemo(
+    () => ({ user, loading, login, logout, getAuthHeader, deleteAccount }),
+    [user, loading, login, logout, getAuthHeader, deleteAccount]
+  );
 
   return (
-    <AuthContext.Provider value={{ user, loading, login, logout, getAuthHeader }}>
+    <AuthContext.Provider value={value}>
       {children}
     </AuthContext.Provider>
   );

@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useEffect } from "react";
@@ -53,6 +54,10 @@ export default function AdminPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
+  const [deleteUserTarget, setDeleteUserTarget] = useState<AdminUser | null>(null);
+  const [deletingUser, setDeletingUser] = useState(false);
+  const [deleteUserError, setDeleteUserError] = useState("");
+
   useEffect(() => {
     if (!user) return;
     let cancelled = false;
@@ -91,7 +96,7 @@ export default function AdminPage() {
 
     loadAll();
     return () => { cancelled = true; };
-  }, [user, getAuthHeader]);
+  }, [user]); // ✅ removed getAuthHeader — now stable via useCallback, no need in deps
 
   async function deleteMachine(id: string) {
     if (!confirm("Delete this listing?")) return;
@@ -118,6 +123,29 @@ export default function AdminPage() {
       setRequests((prev) => prev.filter((r) => r._id !== id));
     } catch (err) {
       alert(err instanceof Error ? err.message : "Failed to delete");
+    }
+  }
+
+  async function confirmDeleteUser() {
+    if (!deleteUserTarget) return;
+    setDeletingUser(true);
+    setDeleteUserError("");
+    try {
+      const res = await fetch(`${API_URL}/api/admin/users/${deleteUserTarget._id}`, {
+        method: "DELETE",
+        headers: { ...getAuthHeader() },
+      });
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        throw new Error(data.message || "Failed to delete user");
+      }
+      setUsers((prev) => prev.filter((u) => u._id !== deleteUserTarget._id));
+      setMachines((prev) => prev.filter((m) => m.ownerId !== deleteUserTarget._id));
+      setDeleteUserTarget(null);
+    } catch (err) {
+      setDeleteUserError(err instanceof Error ? err.message : "Failed to delete user");
+    } finally {
+      setDeletingUser(false);
     }
   }
 
@@ -241,26 +269,42 @@ export default function AdminPage() {
                       <th className="px-5 py-3 font-semibold">Listings</th>
                       <th className="px-5 py-3 font-semibold">Joined</th>
                       <th className="px-5 py-3 font-semibold">Role</th>
+                      <th className="px-5 py-3 font-semibold"></th>
                     </tr>
                   </thead>
                   <tbody>
                     {users.length === 0 ? (
-                      <tr><td colSpan={5} className="px-5 py-10 text-center text-neutral-400">No users yet</td></tr>
-                    ) : users.map((u) => (
-                      <tr key={u._id} className="border-b border-neutral-50 last:border-0">
-                        <td className="px-5 py-3 font-medium text-ink">{u.name}</td>
-                        <td className="px-5 py-3 text-neutral-600">{u.phone}</td>
-                        <td className="px-5 py-3 text-neutral-600">{u.listingCount}</td>
-                        <td className="px-5 py-3 text-neutral-500">
-                          {new Date(u.createdAt).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })}
-                        </td>
-                        <td className="px-5 py-3">
-                          {u.isAdmin
-                            ? <span className="rounded-full bg-yellow-100 px-2.5 py-1 text-xs font-semibold text-yellow-700">Admin</span>
-                            : <span className="rounded-full bg-neutral-100 px-2.5 py-1 text-xs font-semibold text-neutral-500">User</span>}
-                        </td>
-                      </tr>
-                    ))}
+                      <tr><td colSpan={6} className="px-5 py-10 text-center text-neutral-400">No users yet</td></tr>
+                    ) : users.map((u) => {
+                      const isSelf = u._id === user._id;
+                      return (
+                        <tr key={u._id} className="border-b border-neutral-50 last:border-0">
+                          <td className="px-5 py-3 font-medium text-ink">{u.name}</td>
+                          <td className="px-5 py-3 text-neutral-600">{u.phone}</td>
+                          <td className="px-5 py-3 text-neutral-600">{u.listingCount}</td>
+                          <td className="px-5 py-3 text-neutral-500">
+                            {new Date(u.createdAt).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })}
+                          </td>
+                          <td className="px-5 py-3">
+                            {u.isAdmin
+                              ? <span className="rounded-full bg-yellow-100 px-2.5 py-1 text-xs font-semibold text-yellow-700">Admin</span>
+                              : <span className="rounded-full bg-neutral-100 px-2.5 py-1 text-xs font-semibold text-neutral-500">User</span>}
+                          </td>
+                          <td className="px-5 py-3 text-right">
+                            {isSelf ? (
+                              <span className="text-xs text-neutral-400" title="Use 'Delete my account' from your profile menu">You</span>
+                            ) : (
+                              <button
+                                onClick={() => { setDeleteUserError(""); setDeleteUserTarget(u); }}
+                                className="rounded-lg px-2 py-1 text-xs font-semibold text-red-500 hover:bg-red-50"
+                              >
+                                Delete
+                              </button>
+                            )}
+                          </td>
+                        </tr>
+                      );
+                    })}
                   </tbody>
                 </table>
               </div>
@@ -351,6 +395,46 @@ export default function AdminPage() {
             </div>
           )}
         </>
+      )}
+
+      {/* DELETE USER MODAL */}
+      {deleteUserTarget && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
+          <div className="w-full max-w-sm rounded-2xl bg-white p-6 shadow-2xl">
+            <div className="flex h-12 w-12 items-center justify-center rounded-full bg-red-100">
+              <svg className="h-6 w-6 text-red-600" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z" />
+              </svg>
+            </div>
+            <h3 className="mt-4 text-lg font-bold text-ink">Delete this user?</h3>
+            <p className="mt-2 text-sm text-neutral-500">
+              This will permanently delete <span className="font-semibold text-ink">{deleteUserTarget.name}</span> ({deleteUserTarget.phone}),
+              along with <span className="font-semibold text-ink">{deleteUserTarget.listingCount}</span> machine listing(s) and any requests they posted.
+              {" "}<span className="font-semibold text-red-600">This cannot be undone.</span>
+            </p>
+
+            {deleteUserError && (
+              <p className="mt-3 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-600">{deleteUserError}</p>
+            )}
+
+            <div className="mt-6 flex gap-3">
+              <button
+                onClick={() => setDeleteUserTarget(null)}
+                disabled={deletingUser}
+                className="flex-1 rounded-full border border-neutral-200 py-3 text-sm font-semibold text-ink hover:bg-neutral-50 disabled:opacity-60"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={confirmDeleteUser}
+                disabled={deletingUser}
+                className="flex-1 rounded-full bg-red-600 py-3 text-sm font-bold text-white hover:bg-red-700 disabled:opacity-60"
+              >
+                {deletingUser ? "Deleting…" : "Yes, delete"}
+              </button>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );

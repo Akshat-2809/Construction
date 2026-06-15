@@ -157,6 +157,21 @@ function AuthPageInner() {
     setTimeout(() => handleSendOtp(), 100);
   }
 
+  // Enter / Return key handlers — let the keyboard submit just like clicking the button
+  function handleFormKeyDown(e: React.KeyboardEvent<HTMLInputElement>) {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      if (!sendingOtp) handleSendOtp();
+    }
+  }
+
+  function handleOtpKeyDown(e: React.KeyboardEvent<HTMLInputElement>) {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      if (!verifying && !submitting && otp.length >= 6) handleVerifyOtp();
+    }
+  }
+
   return (
     <div className="flex min-h-[80vh] items-center justify-center px-6 py-16">
       <div className="w-full max-w-md">
@@ -198,6 +213,7 @@ function AuthPageInner() {
                     placeholder="e.g. Rajesh Kumar"
                     value={name}
                     onChange={(e) => setName(e.target.value.replace(/[0-9]/g, ""))}
+                    onKeyDown={handleFormKeyDown}
                     className={inputClass}
                     autoFocus
                   />
@@ -215,6 +231,7 @@ function AuthPageInner() {
                     placeholder="9980952438"
                     value={phone}
                     onChange={(e) => setPhone(e.target.value.replace(/\D/g, "").slice(0, 10))}
+                    onKeyDown={handleFormKeyDown}
                     maxLength={10}
                     inputMode="numeric"
                     className={`${inputClass} rounded-l-none border-l-0`}
@@ -262,6 +279,7 @@ function AuthPageInner() {
                   placeholder="• • • • • •"
                   value={otp}
                   onChange={(e) => setOtp(e.target.value.replace(/\D/g, "").slice(0, 6))}
+                  onKeyDown={handleOtpKeyDown}
                   className="w-full rounded-xl border border-neutral-300 bg-white px-4 py-3.5 text-center text-xl font-bold tracking-[0.5em] text-ink outline-none transition-colors focus:border-ink"
                   autoFocus
                 />

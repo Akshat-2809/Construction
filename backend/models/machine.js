@@ -23,6 +23,8 @@ const machineSchema = new mongoose.Schema(
     location: { type: String, required: true },
     currentLocation: { type: String, default: "" },
     pricePerMonth: { type: Number, required: true },
+    pricePerDay: { type: Number, default: null },
+    hoursForDay: { type: Number, default: null },
     modelYear: { type: Number },
     hoursUsed: { type: Number },
     availability: {

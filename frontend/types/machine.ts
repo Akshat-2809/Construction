@@ -25,6 +25,8 @@ export interface Machine {
   location: string;
   currentLocation?: string;
   pricePerMonth: number;
+  pricePerDay?: number | null;
+  hoursForDay?: number | null;
   modelYear?: number;
   hoursUsed?: number;
   availability: AvailabilityStatus;
