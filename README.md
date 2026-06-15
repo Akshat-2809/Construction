@@ -1,14 +1,26 @@
-# ACE Construction
+# MyEquipo
 
-A modern construction equipment rental marketplace that connects equipment owners with contractors and businesses that need machinery on demand.
+India's Construction Equipment Network.
+
+MyEquipo is a technology platform that connects construction equipment owners with contractors, builders, and infrastructure companies looking for machinery on demand.
+
+We help contractors find equipment faster and enable equipment owners to maximize machine utilization, reduce idle time, and generate additional revenue.
+
+---
 
 ## Overview
 
-ACE Construction simplifies the process of finding, listing, and renting construction equipment. Instead of relying on personal contacts and fragmented communication channels, users can discover available machinery, connect with owners, and manage rental requests through a single platform.
+The construction industry still relies heavily on phone calls, personal contacts, and fragmented communication to source machinery. This often results in project delays, underutilized equipment, and lost business opportunities.
+
+MyEquipo is building a modern digital marketplace where contractors can discover available machinery and equipment owners can easily list and manage their assets.
+
+Our vision is to become India's most trusted construction equipment rental network.
+
+---
 
 ## Problem
 
-Construction projects often face delays because contractors cannot quickly locate available machinery such as:
+Construction projects frequently face delays because contractors cannot quickly find available machinery such as:
 
 - Excavators
 - Backhoe Loaders
@@ -17,48 +29,51 @@ Construction projects often face delays because contractors cannot quickly locat
 - Road Rollers
 - Dumpers
 - Concrete Pumps
-- Other heavy equipment
+- Motor Graders
+- Other Heavy Equipment
 
-Equipment owners also struggle with low machine utilization and limited visibility in the market.
+At the same time, equipment owners often have expensive machines sitting idle for months, resulting in lost revenue while still paying maintenance, insurance, and financing costs.
+
+---
 
 ## Solution
 
-ACE Construction provides a digital marketplace where:
+MyEquipo provides a centralized marketplace where:
 
-- Equipment owners can list available machines.
-- Contractors can search and request equipment.
+- Equipment owners can list available machinery.
+- Contractors can discover equipment near them.
 - Rental inquiries are streamlined.
-- Equipment visibility is increased.
-- Idle machinery can generate additional revenue.
+- Equipment availability becomes transparent.
+- Owners increase machine utilization.
+- Contractors reduce project delays.
 
 ---
 
 ## Features
 
-### User Features
+### For Contractors
 
-- User registration and authentication
-- Browse available construction equipment
+- Search construction equipment
 - View machine details
-- Submit rental requests
-- Manage profile information
+- Send rental inquiries
 - Contact equipment owners
+- Discover equipment availability
 
-### Equipment Owner Features
+### For Equipment Owners
 
-- Create equipment listings
-- Update machine information
-- Manage availability
-- Track rental inquiries
-- Remove inactive listings
+- List machinery
+- Manage equipment inventory
+- Update availability
+- Receive rental leads
+- Track inquiries
 
 ### Platform Features
 
 - Secure authentication
 - Responsive design
-- Modern user interface
-- Search and filtering
 - Mobile-friendly experience
+- Search and filtering
+- Modern user interface
 
 ---
 
@@ -81,161 +96,31 @@ ACE Construction provides a digital marketplace where:
 
 ### Deployment
 
-- Vercel (Frontend)
-- MongoDB Atlas (Database)
+- Vercel
+- MongoDB Atlas
 
 ---
 
-## Project Structure
+## Business Vision
 
-```bash
-Construction/
-│
-├── frontend/
-│   ├── app/
-│   ├── components/
-│   ├── public/
-│   ├── lib/
-│   └── ...
-│
-├── backend/
-│   ├── controllers/
-│   ├── models/
-│   ├── routes/
-│   ├── middleware/
-│   └── ...
-│
-└── README.md
-```
+Our mission is to digitize construction equipment rentals and become the operating system for equipment sourcing across India.
 
----
-
-## Installation
-
-### Clone Repository
-
-```bash
-git clone https://github.com/Akshat-2809/Construction.git
-
-cd Construction
-```
-
----
-
-## Backend Setup
-
-```bash
-cd backend
-
-npm install
-```
-
-Create a `.env` file:
-
-```env
-PORT=5001
-
-MONGO_URI=your_mongodb_connection_string
-
-JWT_SECRET=your_jwt_secret
-```
-
-Run backend:
-
-```bash
-npm run dev
-```
-
----
-
-## Frontend Setup
-
-```bash
-cd frontend
-
-npm install
-```
-
-Run frontend:
-
-```bash
-npm run dev
-```
-
-Application will start at:
-
-```bash
-http://localhost:3000
-```
-
----
-
-## Environment Variables
-
-### Backend
-
-```env
-PORT=
-MONGO_URI=
-JWT_SECRET=
-```
-
-### Frontend
-
-```env
-NEXT_PUBLIC_API_URL=
-```
-
-Add Firebase variables if Firebase authentication or storage is used.
-
----
-
-## API Endpoints
-
-### Authentication
-
-```http
-POST /api/auth/register
-POST /api/auth/login
-GET  /api/auth/profile
-```
-
-### Equipment
-
-```http
-GET    /api/machines
-GET    /api/machines/:id
-POST   /api/machines
-PUT    /api/machines/:id
-DELETE /api/machines/:id
-```
-
-### Requests
-
-```http
-POST /api/requests
-GET  /api/requests
-```
+By connecting contractors and equipment owners through technology, we aim to create a more efficient, transparent, and accessible construction ecosystem.
 
 ---
 
 ## Future Roadmap
 
 - Real-time equipment availability
-- Integrated payments
-- Equipment location tracking
+- Location-based equipment search
+- WhatsApp notifications
 - Owner verification
 - Contractor verification
-- WhatsApp notifications
-- AI-powered equipment recommendations
-- Equipment maintenance records
+- Online booking system
+- Integrated payments
+- Equipment tracking
 - Rental analytics dashboard
-
----
-
-## Business Vision
-
-Our goal is to become the operating system for construction equipment rentals by connecting equipment owners and contractors through a reliable, transparent, and scalable platform.
+- AI-powered equipment recommendations
 
 ---
 
@@ -253,4 +138,6 @@ This project is licensed under the ISC License.
 
 ## Author
 
-Developed by the ACE Construction Team.
+Developed by the MyEquipo Team.
+
+**MyEquipo — Find Equipment. Get Work Done.**
