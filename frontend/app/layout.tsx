@@ -6,7 +6,7 @@ import { AuthProvider } from "@/context/AuthContext";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "ACE — Construction machinery marketplace",
+  title: "Myequipo — Construction machinery marketplace",
   description: "Find and rent construction machinery near you.",
   other: {
     "google": "notranslate",

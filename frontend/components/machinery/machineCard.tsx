@@ -221,7 +221,7 @@ export default function MachineCard({ machine }: { machine: Machine }) {
             </div>
             <h2 className="mt-4 text-center text-lg font-bold text-ink">Delete listing?</h2>
             <p className="mt-2 text-center text-sm text-neutral-500">
-              This will permanently remove <span className="font-semibold text-ink">{displayName}</span> from ACE. This cannot be undone.
+              This will permanently remove <span className="font-semibold text-ink">{displayName}</span> from Myequipo. This cannot be undone.
             </p>
             <div className="mt-6 flex gap-3">
               <button onClick={() => setShowDeleteConfirm(false)} className="flex-1 rounded-full border border-neutral-300 py-2.5 text-sm font-semibold text-ink hover:bg-neutral-50">

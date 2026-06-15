@@ -179,9 +179,9 @@ function AuthPageInner() {
         <div className="mb-8 text-center">
           <Link href="/" className="inline-flex items-center gap-2.5">
             <span className="flex h-10 w-10 items-center justify-center rounded-lg bg-ink text-base font-bold text-hivis">
-              A
+              M
             </span>
-            <span className="text-2xl font-semibold tracking-tight text-ink">ACE</span>
+            <span className="text-2xl font-semibold tracking-tight text-ink">Myequipo</span>
           </Link>
           <p className="mt-3 text-neutral-500">
             {tab === "login" ? "Welcome back" : "Create your account"}
@@ -312,7 +312,7 @@ function AuthPageInner() {
         </div>
 
         <p className="mt-6 text-center text-xs text-neutral-400">
-          By continuing you agree to ACE&apos;s Terms of Service.
+          By continuing you agree to Myequipo&apos;s Terms of Service.
         </p>
       </div>
     </div>

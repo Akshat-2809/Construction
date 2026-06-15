@@ -5,9 +5,9 @@ import Link from "next/link";
 const sections = [
   {
     title: "1. Introduction",
-    content: `ACE Machinery ("ACE", "we", "our", or "us") is committed to protecting your privacy. This Privacy Policy explains what information we collect, how we use it, and your rights regarding your data when you use the ACE platform.
+    content: `Myequipo Machinery ("Myequipo", "we", "our", or "us") is committed to protecting your privacy. This Privacy Policy explains what information we collect, how we use it, and your rights regarding your data when you use the Myequipo platform.
 
-By using ACE, you agree to the collection and use of information in accordance with this policy. If you do not agree, please discontinue use of the Platform.`,
+  By using Myequipo, you agree to the collection and use of information in accordance with this policy. If you do not agree, please discontinue use of the Platform.`,
   },
   {
     title: "2. Information We Collect",
@@ -38,7 +38,7 @@ We do not use your data for advertising, profiling, or any purpose not listed ab
   },
   {
     title: "4. How Your Phone Number Is Displayed",
-    content: `Your verified phone number is displayed on your machine listings so that contractors can contact you directly. It is visible only to users who are logged in to ACE.
+    content: `Your verified phone number is displayed on your machine listings so that contractors can contact you directly. It is visible only to users who are logged in to Myequipo.
 
 Your phone number is never displayed publicly on search engines, shared with third-party advertisers, or sold to any external party.`,
   },
@@ -56,7 +56,7 @@ All third-party services we use are bound by their own privacy policies and are 
   },
   {
     title: "6. OTP Verification and Firebase",
-    content: `ACE uses Google Firebase for phone number verification. When you enter your phone number and request an OTP, that number is sent to Firebase to deliver the SMS. Firebase's use of your data is governed by Google's Privacy Policy.
+    content: `Myequipo uses Google Firebase for phone number verification. When you enter your phone number and request an OTP, that number is sent to Firebase to deliver the SMS. Firebase's use of your data is governed by Google's Privacy Policy.
 
 We do not store OTPs on our servers. Once your phone number is verified, only the number itself is stored in our database — not any Firebase tokens or credentials.`,
   },
@@ -73,7 +73,7 @@ While we take every reasonable precaution, no system is 100% secure. We encourag
   },
   {
     title: "8. Cookies and Sessions",
-    content: `ACE uses a single HTTP-only cookie ("ace_token") to maintain your login session. This cookie:
+    content: `Myequipo uses a single HTTP-only cookie ("myequipo_token") to maintain your login session. This cookie:
 
 - Is set only after successful OTP verification.
 - Expires after 30 days of inactivity.
@@ -103,7 +103,7 @@ We will respond to all data requests within 7 business days.`,
   },
   {
     title: "11. Children's Privacy",
-    content: `ACE is not intended for use by individuals under the age of 18. We do not knowingly collect personal information from minors. If you believe a minor has created an account on our Platform, please contact us and we will delete the account promptly.`,
+    content: `Myequipo is not intended for use by individuals under the age of 18. We do not knowingly collect personal information from minors. If you believe a minor has created an account on our Platform, please contact us and we will delete the account promptly.`,
   },
   {
     title: "12. Changes to This Policy",
@@ -115,10 +115,10 @@ We encourage you to review this policy periodically. Continued use of the Platfo
     title: "13. Contact Us",
     content: `If you have any questions, concerns, or requests regarding this Privacy Policy or your personal data, please contact us:
 
-- Through our Help Center at ace.com/help
-- Via our Contact page at ace.com/contact
+  - Through our Help Center at myequipo.com/help
+  - Via our Contact page at myequipo.com/contact
 
-We take privacy seriously and will respond to all enquiries within 7 business days.`,
+  We take privacy seriously and will respond to all enquiries within 7 business days.`,
   },
 ];
 

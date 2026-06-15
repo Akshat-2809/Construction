@@ -5,38 +5,38 @@ import Link from "next/link";
 const sections = [
   {
     title: "1. Acceptance of Terms",
-    content: `By accessing or using ACE ("the Platform"), you agree to be bound by these Terms of Service. If you do not agree to these terms, please do not use the Platform. These terms apply to all users including contractors, machine owners, and visitors.`,
+    content: `By accessing or using Myequipo ("the Platform"), you agree to be bound by these Terms of Service. If you do not agree to these terms, please do not use the Platform. These terms apply to all users including contractors, machine owners, and visitors.`,
   },
   {
     title: "2. Description of Service",
-    content: `ACE is an online marketplace that connects contractors with machine owners for the purpose of renting construction equipment. ACE does not own, operate, or control any machinery listed on the Platform. We act solely as a facilitator between parties.`,
+    content: `Myequipo is an online marketplace that connects contractors with machine owners for the purpose of renting construction equipment. Myequipo does not own, operate, or control any machinery listed on the Platform. We act solely as a facilitator between parties.`,
   },
   {
     title: "3. User Accounts",
-    content: `To access certain features of the Platform, you must register with a valid Indian phone number. You are responsible for maintaining the confidentiality of your account and for all activity that occurs under it. You must provide accurate information during registration. ACE reserves the right to suspend or terminate accounts that violate these terms.`,
+    content: `To access certain features of the Platform, you must register with a valid Indian phone number. You are responsible for maintaining the confidentiality of your account and for all activity that occurs under it. You must provide accurate information during registration. Myequipo reserves the right to suspend or terminate accounts that violate these terms.`,
   },
   {
     title: "4. Listing Machines",
-    content: `Machine owners may list their equipment on ACE free of charge. By listing a machine, you confirm that:
-- You are the legal owner or authorised representative of the machine.
-- All information provided (category, model, location, rate, availability) is accurate and up to date.
-- You will keep your listing updated and remove it when the machine is no longer available for rent.
-- ACE reserves the right to remove any listing that is inaccurate, misleading, or in violation of these terms.`,
+    content: `Machine owners may list their equipment on Myequipo free of charge. By listing a machine, you confirm that:
+  - You are the legal owner or authorised representative of the machine.
+  - All information provided (category, model, location, rate, availability) is accurate and up to date.
+  - You will keep your listing updated and remove it when the machine is no longer available for rent.
+  - Myequipo reserves the right to remove any listing that is inaccurate, misleading, or in violation of these terms.`,
   },
   {
     title: "5. Renting Machines",
-    content: `Contractors using ACE to find machinery agree that:
-- All rental agreements are made directly between the contractor and the machine owner. ACE is not a party to any such agreement.
-- ACE does not guarantee the availability, condition, or suitability of any machine listed on the Platform.
-- Any disputes regarding rental terms, payment, or machine condition must be resolved directly between the parties involved.`,
+    content: `Contractors using Myequipo to find machinery agree that:
+  - All rental agreements are made directly between the contractor and the machine owner. Myequipo is not a party to any such agreement.
+  - Myequipo does not guarantee the availability, condition, or suitability of any machine listed on the Platform.
+  - Any disputes regarding rental terms, payment, or machine condition must be resolved directly between the parties involved.`,
   },
   {
     title: "6. Fees and Payments",
-    content: `ACE does not charge any listing fees or commissions. All pricing is set by machine owners independently. Any financial transactions, deposits, or payments are made directly between contractors and machine owners. ACE is not responsible for any financial disputes or losses arising from such transactions.`,
+    content: `Myequipo does not charge any listing fees or commissions. All pricing is set by machine owners independently. Any financial transactions, deposits, or payments are made directly between contractors and machine owners. Myequipo is not responsible for any financial disputes or losses arising from such transactions.`,
   },
   {
     title: "7. Prohibited Conduct",
-    content: `Users of ACE must not:
+    content: `Users of Myequipo must not:
 - Post false, misleading, or fraudulent listings.
 - Use the Platform for any unlawful purpose.
 - Harass, threaten, or deceive other users.
@@ -47,23 +47,23 @@ Violation of these rules may result in immediate account termination.`,
   },
   {
     title: "8. Intellectual Property",
-    content: `All content on ACE — including the name, logo, design, and software — is the property of ACE Machinery and is protected under applicable intellectual property laws. You may not copy, reproduce, or distribute any part of the Platform without prior written permission.`,
+    content: `All content on Myequipo — including the name, logo, design, and software — is the property of Myequipo Machinery and is protected under applicable intellectual property laws. You may not copy, reproduce, or distribute any part of the Platform without prior written permission.`,
   },
   {
     title: "9. Disclaimer of Warranties",
-    content: `The Platform is provided on an "as is" and "as available" basis. ACE makes no warranties, express or implied, regarding the reliability, accuracy, or fitness for a particular purpose of any content or service on the Platform. We do not guarantee uninterrupted or error-free access to the Platform.`,
+    content: `The Platform is provided on an "as is" and "as available" basis. Myequipo makes no warranties, express or implied, regarding the reliability, accuracy, or fitness for a particular purpose of any content or service on the Platform. We do not guarantee uninterrupted or error-free access to the Platform.`,
   },
   {
     title: "10. Limitation of Liability",
-    content: `To the fullest extent permitted by law, ACE shall not be liable for any indirect, incidental, special, or consequential damages arising from your use of the Platform, including but not limited to loss of revenue, loss of data, or disputes between users. ACE's total liability in any matter shall not exceed the amount you have paid to use the Platform (which in most cases is zero, as the Platform is free).`,
+    content: `To the fullest extent permitted by law, Myequipo shall not be liable for any indirect, incidental, special, or consequential damages arising from your use of the Platform, including but not limited to loss of revenue, loss of data, or disputes between users. Myequipo's total liability in any matter shall not exceed the amount you have paid to use the Platform (which in most cases is zero, as the Platform is free).`,
   },
   {
     title: "11. Privacy",
-    content: `Your use of the Platform is also governed by our Privacy Policy, which is incorporated into these Terms by reference. By using ACE, you consent to the collection and use of your information as described in the Privacy Policy.`,
+    content: `Your use of the Platform is also governed by our Privacy Policy, which is incorporated into these Terms by reference. By using Myequipo, you consent to the collection and use of your information as described in the Privacy Policy.`,
   },
   {
     title: "12. Modifications to Terms",
-    content: `ACE reserves the right to update or modify these Terms of Service at any time. Changes will be effective immediately upon posting to the Platform. Continued use of the Platform after any changes constitutes your acceptance of the revised terms. We recommend reviewing these terms periodically.`,
+    content: `Myequipo reserves the right to update or modify these Terms of Service at any time. Changes will be effective immediately upon posting to the Platform. Continued use of the Platform after any changes constitutes your acceptance of the revised terms. We recommend reviewing these terms periodically.`,
   },
   {
     title: "13. Governing Law",
@@ -89,7 +89,7 @@ export default function TermsPage() {
           Terms of Service
         </h1>
         <p className="mx-auto mt-4 max-w-lg text-base text-neutral-500">
-          Please read these terms carefully before using ACE. By using our platform, you agree to be bound by these terms.
+          Please read these terms carefully before using Myequipo. By using our platform, you agree to be bound by these terms.
         </p>
         <p className="mt-3 text-sm text-neutral-400">
           Last updated: June 2026

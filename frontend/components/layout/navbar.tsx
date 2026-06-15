@@ -100,10 +100,10 @@ export default function Navbar() {
       >
         {/* Logo */}
         <Link href="/" className="group flex shrink-0 items-center gap-2.5">
-          <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-ink text-base font-bold text-hivis transition-transform duration-300 group-hover:rotate-6 group-hover:scale-105">
-            A
+            <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-ink text-base font-bold text-hivis transition-transform duration-300 group-hover:rotate-6 group-hover:scale-105">
+            M
           </span>
-          <span className="text-xl font-semibold tracking-tight text-ink">ACE</span>
+          <span className="text-xl font-semibold tracking-tight text-ink">Myequipo</span>
         </Link>
 
         {/* Desktop links */}

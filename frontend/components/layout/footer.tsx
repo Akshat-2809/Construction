@@ -51,10 +51,10 @@ export default function Footer() {
           <div className="col-span-2 md:col-span-1">
             <Link href="/" className="flex items-center gap-2">
               <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-hivis text-sm font-bold text-ink">
-                A
+                M
               </span>
               <span className="text-lg font-semibold tracking-tight text-white">
-                ACE
+                Myequipo
               </span>
             </Link>
             <p className="mt-3 max-w-xs text-sm leading-relaxed text-neutral-400">
@@ -105,7 +105,7 @@ export default function Footer() {
         <div className="mt-9 border-t border-neutral-800 pt-6">
           <div className="flex flex-col items-center justify-between gap-4 sm:flex-row">
             <p className="text-sm text-neutral-500">
-              © {new Date().getFullYear()} ACE Machinery. All rights reserved.
+              © {new Date().getFullYear()} Myequipo Machinery. All rights reserved.
             </p>
             <p className="text-sm text-neutral-500">
               Made for builders, in India.

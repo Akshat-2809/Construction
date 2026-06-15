@@ -169,7 +169,7 @@ export default function AdminPage() {
 
       <div className="mb-8">
         <h1 className="text-3xl font-bold tracking-tight text-ink">Admin Dashboard</h1>
-        <p className="mt-1 text-neutral-500">Live overview of ACE platform data</p>
+        <p className="mt-1 text-neutral-500">Live overview of Myequipo platform data</p>
       </div>
 
       {loading && (

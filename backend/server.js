@@ -38,7 +38,7 @@ app.use("/api/auth", authRoutes);
 app.use("/api/admin", adminRoutes);
 
 app.get("/", (req, res) => {
-  res.send("ACE backend is running 🚀");
+  res.send("Myequipo backend is running 🚀");
 });
 
 const PORT = process.env.PORT || 5001;

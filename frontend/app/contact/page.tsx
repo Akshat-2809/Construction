@@ -20,7 +20,7 @@ export default function ContactPage() {
     e.preventDefault();
     // WhatsApp-style submission — build a pre-filled message
     const text = encodeURIComponent(
-      `Hi ACE! I have an enquiry.\n\n` +
+      `Hi Myequipo! I have an enquiry.\n\n` +
       `Name: ${form.name}\n` +
       `Phone: ${form.phone}\n` +
       `Email: ${form.email}\n` +
@@ -36,7 +36,7 @@ export default function ContactPage() {
       {/* Header */}
       <div className="mb-10">
         <span className="mb-3 inline-block rounded-full bg-hivis px-3 py-1 text-xs font-semibold text-ink">
-          ACE Construction Machinery
+          Myequipo Construction Machinery
         </span>
         <h1 className="text-3xl font-bold tracking-tight text-ink sm:text-4xl">
           Get in touch
@@ -72,7 +72,7 @@ export default function ContactPage() {
                   </svg>
                 ),
                 label: "Email",
-                value: "hello@acemachinery.in",
+                value: "myequipomachines@gmail.com",
               },
               {
                 icon: (

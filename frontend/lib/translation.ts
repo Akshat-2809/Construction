@@ -14,7 +14,7 @@ export const translations = {
     heroHeadline1: "Find the right machine.",
     heroHeadlineHighlight: "Right when",
     heroHeadline2: "you need it.",
-    heroSubtext: "ACE connects contractors with machine owners nearby. Browse available equipment, see live rates, and contact owners directly — no middlemen, no markup.",
+    heroSubtext: "Myequipo connects contractors with machine owners nearby. Browse available equipment, see live rates, and contact owners directly — no middlemen, no markup.",
     heroCta1: "Find a machine",
     heroCta2: "List your machine",
     stat1Value: "500+",
@@ -42,7 +42,7 @@ export const translations = {
     listEyebrow: "For machine owners",
     listHeadline1: "Got a machine?",
     listHeadlineHighlight: "Put it to work.",
-    listSubtext: "List your excavator, mixer, pump, or loader on ACE and connect with contractors who need it. Free to list, and you keep every rupee you earn.",
+    listSubtext: "List your excavator, mixer, pump, or loader on Myequipo and connect with contractors who need it. Free to list, and you keep every rupee you earn.",
     listCta1: "List your machine",
     listCta2: "Learn more",
     listReassurance: "No listing fee · No commission · Set up in minutes",
@@ -182,7 +182,7 @@ export const translations = {
 
     // My Listings page
     myListingsTitle: "My Listings",
-    myListingsSubtext: "Machines you have listed on ACE",
+    myListingsSubtext: "Machines you have listed on Myequipo",
     myListingsAdd: "Add machine",
     myListingsEmpty: "No listings yet",
     myListingsEmptySub: "List your first machine and start getting rental requests.",
@@ -214,7 +214,7 @@ export const translations = {
     // Help page
     helpBadge: "Help Center",
     helpHeroTitle: "How can we help?",
-    helpHeroSubtext: "Guides and answers for everything on ACE — listing machines, finding equipment, and managing your account.",
+    helpHeroSubtext: "Guides and answers for everything on Myequipo — listing machines, finding equipment, and managing your account.",
     helpGuidesTitle: "Step-by-step guides",
     helpFaqTitle: "Frequently asked questions",
     helpContactTitle: "Still need help?",
@@ -264,7 +264,7 @@ export const translations = {
 
     // FAQs
     helpFaq1Q: "Is it free to list a machine?",
-    helpFaq1A: "Yes, listing your machine on ACE is completely free. We charge no listing fee and take zero commission on any deal you make.",
+    helpFaq1A: "Yes, listing your machine on Myequipo is completely free. We charge no listing fee and take zero commission on any deal you make.",
     helpFaq2Q: "How does OTP login work?",
     helpFaq2A: "Enter your phone number and we send a one-time password (OTP) via SMS. Enter the OTP to verify your identity — no passwords to remember.",
     helpFaq3Q: "Can I list multiple machines?",
@@ -274,7 +274,7 @@ export const translations = {
     helpFaq5Q: "How do contractors contact me?",
     helpFaq5A: "Your verified phone number is shown on your listing. Contractors can call you directly — no chat system, no delays.",
     helpFaq6Q: "Is my phone number safe?",
-    helpFaq6A: "Your number is only shown to logged-in users on ACE. We never sell or share your data with third parties.",
+    helpFaq6A: "Your number is only shown to logged-in users on Myequipo. We never sell or share your data with third parties.",
   },
   hi: {
     // Navbar links
@@ -291,7 +291,7 @@ export const translations = {
     heroHeadline1: "सही मशीन खोजें।",
     heroHeadlineHighlight: "जब भी",
     heroHeadline2: "जरूरत हो।",
-    heroSubtext: "ACE ठेकेदारों को पास के मशीन मालिकों से जोड़ता है। उपलब्ध उपकरण देखें, लाइव रेट जानें, और मालिक से सीधे संपर्क करें — कोई बिचौलिया नहीं, कोई अतिरिक्त शुल्क नहीं।",
+    heroSubtext: "Myequipo ठेकेदारों को पास के मशीन मालिकों से जोड़ता है। उपलब्ध उपकरण देखें, लाइव रेट जानें, और मालिक से सीधे संपर्क करें — कोई बिचौलिया नहीं, कोई अतिरिक्त शुल्क नहीं।",
     heroCta1: "मशीन खोजें",
     heroCta2: "मशीन लिस्ट करें",
     stat1Value: "500+",
@@ -319,7 +319,7 @@ export const translations = {
     listEyebrow: "मशीन मालिकों के लिए",
     listHeadline1: "मशीन है?",
     listHeadlineHighlight: "कमाई करें।",
-    listSubtext: "ACE पर अपना एक्सकेवेटर, मिक्सर, पंप या लोडर लिस्ट करें और जरूरतमंद ठेकेदारों से जुड़ें। लिस्टिंग मुफ्त है, और आप जो भी कमाते हैं वो पूरा आपका।",
+    listSubtext: "Myequipo पर अपना एक्सकेवेटर, मिक्सर, पंप या लोडर लिस्ट करें और जरूरतमंद ठेकेदारों से जुड़ें। लिस्टिंग मुफ्त है, और आप जो भी कमाते हैं वो पूरा आपका।",
     listCta1: "मशीन लिस्ट करें",
     listCta2: "और जानें",
     listReassurance: "कोई लिस्टिंग शुल्क नहीं · कोई कमीशन नहीं · मिनटों में शुरू करें",
@@ -459,7 +459,7 @@ export const translations = {
 
     // My Listings page
     myListingsTitle: "मेरी लिस्टिंग",
-    myListingsSubtext: "ACE पर आपकी लिस्ट की गई मशीनें",
+    myListingsSubtext: "Myequipo पर आपकी लिस्ट की गई मशीनें",
     myListingsAdd: "मशीन जोड़ें",
     myListingsEmpty: "अभी कोई लिस्टिंग नहीं",
     myListingsEmptySub: "अपनी पहली मशीन लिस्ट करें और किराए की रिक्वेस्ट पाना शुरू करें।",
@@ -491,7 +491,7 @@ export const translations = {
     // Help page
     helpBadge: "सहायता केंद्र",
     helpHeroTitle: "हम कैसे मदद कर सकते हैं?",
-    helpHeroSubtext: "ACE पर मशीन लिस्ट करने, उपकरण खोजने और अकाउंट मैनेज करने की पूरी जानकारी यहाँ है।",
+    helpHeroSubtext: "Myequipo पर मशीन लिस्ट करने, उपकरण खोजने और अकाउंट मैनेज करने की पूरी जानकारी यहाँ है।",
     helpGuidesTitle: "चरण-दर-चरण गाइड",
     helpFaqTitle: "अक्सर पूछे जाने वाले सवाल",
     helpContactTitle: "अभी भी मदद चाहिए?",
@@ -541,7 +541,7 @@ export const translations = {
 
     // FAQs
     helpFaq1Q: "क्या मशीन लिस्ट करना मुफ्त है?",
-    helpFaq1A: "हाँ, ACE पर मशीन लिस्ट करना पूरी तरह मुफ्त है। कोई लिस्टिंग शुल्क नहीं, कोई कमीशन नहीं।",
+    helpFaq1A: "हाँ, Myequipo पर मशीन लिस्ट करना पूरी तरह मुफ्त है। कोई लिस्टिंग शुल्क नहीं, कोई कमीशन नहीं।",
     helpFaq2Q: "OTP लॉगिन कैसे काम करता है?",
     helpFaq2A: "फ़ोन नंबर डालें और हम SMS से OTP भेजते हैं। OTP डालकर पहचान सत्यापित करें — कोई पासवर्ड याद नहीं रखना।",
     helpFaq3Q: "क्या मैं कई मशीनें लिस्ट कर सकता हूँ?",
@@ -551,7 +551,7 @@ export const translations = {
     helpFaq5Q: "ठेकेदार मुझसे कैसे संपर्क करते हैं?",
     helpFaq5A: "आपका सत्यापित फ़ोन नंबर लिस्टिंग पर दिखता है। ठेकेदार सीधे कॉल करते हैं — कोई चैट सिस्टम नहीं, कोई देरी नहीं।",
     helpFaq6Q: "क्या मेरा फ़ोन नंबर सुरक्षित है?",
-    helpFaq6A: "आपका नंबर केवल ACE के लॉग इन यूज़र को दिखता है। हम आपका डेटा कभी किसी तीसरे पक्ष को नहीं बेचते।",
+    helpFaq6A: "आपका नंबर केवल Myequipo के लॉग इन यूज़र को दिखता है। हम आपका डेटा कभी किसी तीसरे पक्ष को नहीं बेचते।",
   },
 } as const;
 
