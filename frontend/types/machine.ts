@@ -36,4 +36,8 @@ export interface Machine {
   description?: string;
   contactVerified?: boolean;
   createdAt?: string;
+  operatorAvailable?: "yes" | "no";
+  fuelIncluded?: "yes" | "no";
+  transportAvailable?: "yes" | "no";
+  transportCharges?: number | null;
 }

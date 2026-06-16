@@ -21,10 +21,7 @@ const machineSchema = new mongoose.Schema(
     model: { type: String, required: true },
     image: { type: String, default: "/excavator.webp" },
     location: { type: String, required: true },
-    currentLocation: { type: String, default: "" },
     pricePerMonth: { type: Number, required: true },
-    pricePerDay: { type: Number, default: null },
-    hoursForDay: { type: Number, default: null },
     modelYear: { type: Number },
     hoursUsed: { type: Number },
     availability: {
@@ -37,6 +34,11 @@ const machineSchema = new mongoose.Schema(
     ownerContact: { type: String, required: true },
     description: { type: String },
     contactVerified: { type: Boolean, default: true },
+    currentLocation: { type: String, default: "" },
+    operatorAvailable: { type: String, enum: ["yes", "no"], default: "no" },
+    fuelIncluded: { type: String, enum: ["yes", "no"], default: "no" },
+    transportAvailable: { type: String, enum: ["yes", "no"], default: "no" },
+    transportCharges: { type: Number, default: null },
   },
   { timestamps: true }
 );

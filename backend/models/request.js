@@ -16,6 +16,8 @@ const requestSchema = new mongoose.Schema(
     requiredFrom: { type: Date, required: true },
     requiredTill: { type: Date, default: null },
     budgetPerMonth: { type: Number, default: null },
+    budgetForPeriod: { type: Number, default: null },
+    hoursRequired: { type: Number, default: null },
     description: { type: String },
     contactName: { type: String, required: true },
     contactNumber: { type: String, required: true },

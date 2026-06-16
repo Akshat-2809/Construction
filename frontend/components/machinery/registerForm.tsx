@@ -63,6 +63,10 @@ export default function RegisterForm() {
     description: "",
     availability: "yes",
     availableFrom: "",
+    operatorAvailable: "no",
+    fuelIncluded: "no",
+    transportAvailable: "no",
+    transportCharges: "",
   });
 
   useEffect(() => {
@@ -135,7 +139,6 @@ export default function RegisterForm() {
     setError("");
 
     try {
-      // ✅ Fixed: use getAuthHeader() instead of credentials: "include"
       const res = await fetch(`${API_URL}/api/machines`, {
         method: "POST",
         headers: {
@@ -152,6 +155,10 @@ export default function RegisterForm() {
           hoursUsed: Number(form.hoursUsed),
           image: defaultImage,
           availableFrom: form.availability === "no" ? form.availableFrom : null,
+          operatorAvailable: form.operatorAvailable,
+          fuelIncluded: form.fuelIncluded,
+          transportAvailable: form.transportAvailable,
+          transportCharges: form.transportAvailable === "yes" && form.transportCharges ? Number(form.transportCharges) : null,
           ownerId: user._id,
         }),
       });
@@ -203,6 +210,8 @@ export default function RegisterForm() {
                 ownerName: user?.name ?? "",
                 ownerContact: user?.phone ?? "",
                 description: "", availability: "yes", availableFrom: "",
+                operatorAvailable: "no", fuelIncluded: "no",
+                transportAvailable: "no", transportCharges: "",
               });
               setPreview(null);
             }}
@@ -322,7 +331,6 @@ export default function RegisterForm() {
         </Field>
       </div>
 
-
       {/* Current location */}
       <Field label={t.regCurrentLocation}>
         <input type="text" placeholder={t.regCurrentLocationPlaceholder} value={form.currentLocation} onChange={(e) => update("currentLocation", e.target.value)} className={inputClass} />
@@ -379,6 +387,49 @@ export default function RegisterForm() {
           </div>
           <p className="mt-1.5 text-xs text-neutral-400">{t.regFromAccountVerified}</p>
         </Field>
+      </div>
+
+      {/* Operator / Fuel / Transport */}
+      <div className="grid gap-6 sm:grid-cols-3">
+        <div>
+          <label className="mb-3 block text-sm font-semibold text-ink">{t.regOperatorAvailable}</label>
+          <div className="flex gap-3">
+            {(["yes", "no"] as const).map((val) => (
+              <button key={val} type="button"
+                onClick={() => update("operatorAvailable", val)}
+                className={`flex-1 rounded-full border px-4 py-2.5 text-sm font-semibold transition-colors ${form.operatorAvailable === val ? "border-ink bg-ink text-white" : "border-neutral-300 bg-white text-ink hover:bg-mist"}`}>
+                {val === "yes" ? t.regAvailableYes : t.regAvailableNo}
+              </button>
+            ))}
+          </div>
+        </div>
+        <div>
+          <label className="mb-3 block text-sm font-semibold text-ink">{t.regFuelIncluded}</label>
+          <div className="flex gap-3">
+            {(["yes", "no"] as const).map((val) => (
+              <button key={val} type="button"
+                onClick={() => update("fuelIncluded", val)}
+                className={`flex-1 rounded-full border px-4 py-2.5 text-sm font-semibold transition-colors ${form.fuelIncluded === val ? "border-ink bg-ink text-white" : "border-neutral-300 bg-white text-ink hover:bg-mist"}`}>
+                {val === "yes" ? t.regAvailableYes : t.regAvailableNo}
+              </button>
+            ))}
+          </div>
+        </div>
+        <div>
+          <label className="mb-3 block text-sm font-semibold text-ink">{t.regTransportCharges}</label>
+          <div className="flex gap-3">
+            {(["yes", "no"] as const).map((val) => (
+              <button key={val} type="button"
+                onClick={() => { update("transportAvailable", val); if (val === "no") update("transportCharges", ""); }}
+                className={`flex-1 rounded-full border px-4 py-2.5 text-sm font-semibold transition-colors ${form.transportAvailable === val ? "border-ink bg-ink text-white" : "border-neutral-300 bg-white text-ink hover:bg-mist"}`}>
+                {val === "yes" ? t.regAvailableYes : t.regAvailableNo}
+              </button>
+            ))}
+          </div>
+          {form.transportAvailable === "yes" && (
+            <input type="number" min={0} placeholder={t.regTransportPlaceholder} value={form.transportCharges} onChange={(e) => update("transportCharges", e.target.value)} className={`${inputClass} mt-3`} />
+          )}
+        </div>
       </div>
 
       <Field label={t.regDescription}>

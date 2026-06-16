@@ -17,23 +17,30 @@ router.get("/", async (req, res) => {
 router.post("/", authMiddleware, async (req, res) => {
   try {
     const {
-      category, craneType, company, model, image, location, pricePerMonth,
-      modelYear, hoursUsed, availability, availableFrom,
+      category, craneType, company, model, image, location, currentLocation,
+      pricePerMonth, modelYear, hoursUsed, availability, availableFrom,
       ownerName, ownerContact, description,
+      operatorAvailable, fuelIncluded, transportAvailable, transportCharges,
     } = req.body;
 
     const newMachine = new Machine({
-      ownerId: req.user._id,   // from JWT via authMiddleware
+      ownerId: req.user._id,
       category,
       craneType: category === "Crane" ? craneType : null,
-      company, model, image, location,
+      company, model, image,
+      location,
+      currentLocation: currentLocation ?? "",
       pricePerMonth: Number(pricePerMonth),
       modelYear: modelYear ? Number(modelYear) : undefined,
       hoursUsed: hoursUsed ? Number(hoursUsed) : undefined,
       availability: availability === "no" ? "no" : "yes",
       availableFrom: availability === "no" && availableFrom ? new Date(availableFrom) : null,
       ownerName, ownerContact, description,
-      contactVerified: true,   // all new listings are auto-verified via account OTP
+      contactVerified: true,
+      operatorAvailable: operatorAvailable === "yes" ? "yes" : "no",
+      fuelIncluded: fuelIncluded === "yes" ? "yes" : "no",
+      transportAvailable: transportAvailable === "yes" ? "yes" : "no",
+      transportCharges: transportAvailable === "yes" && transportCharges ? Number(transportCharges) : null,
     });
 
     const saved = await newMachine.save();
@@ -56,6 +63,7 @@ router.put("/:id", authMiddleware, async (req, res) => {
     const {
       pricePerMonth, location, ownerName, ownerContact,
       description, availability, availableFrom, modelYear, hoursUsed,
+      operatorAvailable, fuelIncluded, transportAvailable, transportCharges,
     } = req.body;
 
     const updated = await Machine.findByIdAndUpdate(
@@ -67,6 +75,10 @@ router.put("/:id", authMiddleware, async (req, res) => {
         availableFrom: availability === "no" && availableFrom ? new Date(availableFrom) : null,
         ...(modelYear !== undefined && { modelYear: Number(modelYear) }),
         ...(hoursUsed !== undefined && { hoursUsed: Number(hoursUsed) }),
+        ...(operatorAvailable !== undefined && { operatorAvailable: operatorAvailable === "yes" ? "yes" : "no" }),
+        ...(fuelIncluded !== undefined && { fuelIncluded: fuelIncluded === "yes" ? "yes" : "no" }),
+        ...(transportAvailable !== undefined && { transportAvailable: transportAvailable === "yes" ? "yes" : "no" }),
+        ...(transportCharges !== undefined && { transportCharges: transportAvailable === "yes" && transportCharges ? Number(transportCharges) : null }),
       },
       { returnDocument: "after", runValidators: true }
     );

@@ -1,10 +1,12 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import {
   categories,
   craneTypes,
-  locations,
+  statesAndCities,
+  states,
 } from "@/lib/machineOptions";
 import { useLang } from "@/context/LanguageContext";
 import { translations } from "@/lib/translation";
@@ -16,15 +18,20 @@ export default function RequestForm() {
   const { lang } = useLang();
   const t = translations[lang];
   const { user } = useAuth();
+  const router = useRouter();
 
   const [form, setForm] = useState({
     category: "",
     craneType: "",
+    state: "",
+    customState: "",
     location: "",
     customLocation: "",
     requiredFrom: "",
     requiredTill: "",
+    hoursRequired: "",
     budgetPerMonth: "",
+    budgetForPeriod: "",
     description: "",
     contactName: user?.name ?? "",
     contactNumber: user?.phone ?? "",
@@ -35,9 +42,28 @@ export default function RequestForm() {
   const [error, setError] = useState("");
 
   const isCrane = form.category === "Crane";
+  const isOtherState = form.state === "Other";
   const isOtherLocation = form.location === "Other";
-  const finalLocation = isOtherLocation ? form.customLocation.trim() : form.location;
   const todayStr = new Date().toISOString().split("T")[0];
+
+  // Detect 1-day rental: both dates set and equal
+  const isOneDay = !!(form.requiredFrom && form.requiredTill && form.requiredFrom === form.requiredTill);
+
+  // Detect short period: both dates set, different days, but less than 30 days apart
+  const isShortPeriod = !!(
+    form.requiredFrom &&
+    form.requiredTill &&
+    form.requiredFrom !== form.requiredTill &&
+    (new Date(form.requiredTill).getTime() - new Date(form.requiredFrom).getTime()) < 30 * 24 * 60 * 60 * 1000
+  );
+
+  const availableCities = !isOtherState && form.state
+    ? statesAndCities[form.state] ?? []
+    : [];
+
+  const finalState = isOtherState ? form.customState.trim() : form.state;
+  const finalCity = isOtherLocation ? form.customLocation.trim() : form.location;
+  const finalLocation = [finalCity, finalState].filter(Boolean).join(", ");
 
   function update(field: string, value: string) {
     setForm((prev) => ({ ...prev, [field]: value }));
@@ -45,8 +71,16 @@ export default function RequestForm() {
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
+    if (isOtherState && !form.customState.trim()) {
+      setError("Please enter your state name.");
+      return;
+    }
     if (isOtherLocation && !form.customLocation.trim()) {
       setError(t.reqErrorCity);
+      return;
+    }
+    if (isOneDay && !form.hoursRequired) {
+      setError("Please enter the number of hours required.");
       return;
     }
     setSubmitting(true);
@@ -59,7 +93,9 @@ export default function RequestForm() {
           ...form,
           location: finalLocation,
           craneType: isCrane ? form.craneType : null,
-          budgetPerMonth: form.budgetPerMonth ? Number(form.budgetPerMonth) : null,
+          budgetPerMonth: (!isOneDay && !isShortPeriod) && form.budgetPerMonth ? Number(form.budgetPerMonth) : null,
+          budgetForPeriod: (isOneDay || isShortPeriod) && form.budgetForPeriod ? Number(form.budgetForPeriod) : null,
+          hoursRequired: isOneDay && form.hoursRequired ? Number(form.hoursRequired) : null,
           requiredTill: form.requiredTill || null,
         }),
       });
@@ -68,6 +104,7 @@ export default function RequestForm() {
         throw new Error(data.message || "Something went wrong");
       }
       setSubmitted(true);
+      router.refresh();
       window.scrollTo({ top: 0, behavior: "smooth" });
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to submit");
@@ -97,9 +134,10 @@ export default function RequestForm() {
             onClick={() => {
               setSubmitted(false);
               setForm({
-                category: "", craneType: "", location: "", customLocation: "",
-                requiredFrom: "", requiredTill: "", budgetPerMonth: "",
-                description: "",
+                category: "", craneType: "",
+                state: "", customState: "", location: "", customLocation: "",
+                requiredFrom: "", requiredTill: "", hoursRequired: "",
+                budgetPerMonth: "", budgetForPeriod: "", description: "",
                 contactName: user?.name ?? "",
                 contactNumber: user?.phone ?? "",
               });
@@ -148,26 +186,60 @@ export default function RequestForm() {
       )}
 
       <Field label={t.reqLocation}>
-        <select
-          required
-          value={form.location}
-          onChange={(e) => { update("location", e.target.value); update("customLocation", ""); }}
-          className={selectClass}
-        >
-          <option value="" disabled>{t.reqSelectLocation}</option>
-          {[...locations, ...(!locations.includes("Gwalior") ? ["Gwalior"] : [])].sort().map((l: string) => (
-            <option key={l} value={l}>{l}</option>
-          ))}
-        </select>
-        {isOtherLocation && (
+        <div className="grid gap-3 sm:grid-cols-2">
+          <select
+            required
+            value={form.state}
+            onChange={(e) => { update("state", e.target.value); update("location", ""); update("customLocation", ""); update("customState", ""); }}
+            className={selectClass}
+          >
+            <option value="" disabled>{t.regSelectState}</option>
+            {states.map((s: string) => <option key={s} value={s}>{s}</option>)}
+          </select>
+
+          {isOtherState ? (
+            <input
+              type="text"
+              required
+              placeholder={t.regEnterStateName}
+              value={form.customState}
+              onChange={(e) => update("customState", e.target.value.replace(/[^a-zA-Z\s]/g, ""))}
+              className={inputClass}
+            />
+          ) : (
+            <select
+              required
+              value={form.location}
+              disabled={!form.state}
+              onChange={(e) => { update("location", e.target.value); update("customLocation", ""); }}
+              className={`${selectClass} disabled:cursor-not-allowed disabled:bg-neutral-100 disabled:text-neutral-400`}
+            >
+              <option value="" disabled>{form.state ? t.reqSelectLocation : t.regSelectStateFirst}</option>
+              {availableCities.map((c: string) => <option key={c} value={c}>{c}</option>)}
+              <option value="Other">{t.regOtherCityOption}</option>
+            </select>
+          )}
+        </div>
+
+        {!isOtherState && isOtherLocation && (
           <input
             type="text"
             required
             placeholder={t.reqCustomLocationPlaceholder}
             value={form.customLocation}
             onChange={(e) => update("customLocation", e.target.value.replace(/[^a-zA-Z\s]/g, ""))}
-            className={`${inputClass} mt-2`}
+            className={`${inputClass} mt-3`}
             autoFocus
+          />
+        )}
+        {isOtherState && (
+          <input
+            type="text"
+            required
+            placeholder={t.reqCustomLocationPlaceholder}
+            value={form.customLocation}
+            onChange={(e) => update("customLocation", e.target.value.replace(/[^a-zA-Z\s]/g, ""))}
+            className={`${inputClass} mt-3`}
           />
         )}
       </Field>
@@ -194,16 +266,61 @@ export default function RequestForm() {
         </Field>
       </div>
 
-      <Field label={t.reqBudget}>
-        <input
-          type="number"
-          min={0}
-          placeholder="e.g. 20000"
-          value={form.budgetPerMonth}
-          onChange={(e) => update("budgetPerMonth", e.target.value)}
-          className={inputClass}
-        />
-      </Field>
+      {/* 1-day rental extras — shown when from == till */}
+      {isOneDay && (
+        <div className="grid gap-4 sm:grid-cols-2 rounded-2xl border border-neutral-200 bg-neutral-50 p-5">
+          <Field label="Number of hours required">
+            <input
+              type="number"
+              required
+              min={1}
+              max={24}
+              placeholder="e.g. 8"
+              value={form.hoursRequired}
+              onChange={(e) => update("hoursRequired", e.target.value)}
+              className={inputClass}
+            />
+          </Field>
+          <Field label="Budget for the day (₹) — optional">
+            <input
+              type="number"
+              min={0}
+              placeholder="e.g. 5000"
+              value={form.budgetForPeriod}
+              onChange={(e) => update("budgetForPeriod", e.target.value)}
+              className={inputClass}
+            />
+          </Field>
+        </div>
+      )}
+
+      {/* Short period (< 30 days, not same day) — budget for the time period */}
+      {isShortPeriod && (
+        <Field label="Budget for the time period (₹) — optional">
+          <input
+            type="number"
+            min={0}
+            placeholder="e.g. 15000"
+            value={form.budgetForPeriod}
+            onChange={(e) => update("budgetForPeriod", e.target.value)}
+            className={inputClass}
+          />
+        </Field>
+      )}
+
+      {/* Monthly or open-ended — budget per month */}
+      {!isOneDay && !isShortPeriod && (
+        <Field label={t.reqBudget}>
+          <input
+            type="number"
+            min={0}
+            placeholder="e.g. 20000"
+            value={form.budgetPerMonth}
+            onChange={(e) => update("budgetPerMonth", e.target.value)}
+            className={inputClass}
+          />
+        </Field>
+      )}
 
       <Field label={t.reqDetails}>
         <textarea
