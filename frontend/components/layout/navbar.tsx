@@ -31,7 +31,7 @@ export default function Navbar() {
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [deleteError, setDeleteError] = useState("");
-  const [mounted, setMounted] = useState(false);
+  const [showLogoutModal, setShowLogoutModal] = useState(false);
   const { lang } = useLang();
   const t = translations[lang];
   const { user, logout, deleteAccount, loading } = useAuth();
@@ -52,10 +52,6 @@ export default function Navbar() {
   }
 
   useEffect(() => {
-    setMounted(true);
-  }, []);
-
-  useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 8);
     onScroll();
     window.addEventListener("scroll", onScroll, { passive: true });
@@ -69,10 +65,18 @@ export default function Navbar() {
     return () => document.removeEventListener("click", handler);
   }, [userMenuOpen]);
 
-  async function handleLogout() {
+  async function confirmLogout() {
     await logout();
+    setShowLogoutModal(false);
     setUserMenuOpen(false);
+    setIsOpen(false);
     router.push("/");
+  }
+
+  async function handleLogout() {
+    setUserMenuOpen(false);
+    setIsOpen(false);
+    setShowLogoutModal(true);
   }
 
   async function handleDeleteAccount() {
@@ -111,19 +115,19 @@ export default function Navbar() {
             alt="Myequipo"
             width={40}
             height={40}
-            className="h-10 w-10 object-contain transition-opacity duration-200 group-hover:opacity-80"
+            className="h-8 w-8 object-contain transition-opacity duration-200 group-hover:opacity-80 xl:h-10 xl:w-10"
             priority
           />
-          <span className="text-xl font-semibold tracking-tight text-ink">Myequipo</span>
+          <span className="text-lg font-semibold tracking-tight text-ink xl:text-xl">Myequipo</span>
         </Link>
 
         {/* Desktop links */}
-        <div className="hidden items-center gap-8 md:flex">
+        <div className="hidden items-center gap-3 md:flex lg:gap-4 xl:gap-6">
           {navLinks.map((link) => (
             <Link
               key={link.href}
               href={resolveHref(link.href, link.protected)}
-              className="group relative text-sm font-medium text-neutral-600 transition-colors hover:text-ink"
+              className="group relative whitespace-nowrap text-xs font-medium text-neutral-600 transition-colors hover:text-ink xl:text-sm"
             >
               {link.label}
               <span className="absolute -bottom-1.5 left-0 h-0.5 w-0 bg-hivis transition-all duration-300 ease-out group-hover:w-full" />
@@ -132,15 +136,15 @@ export default function Navbar() {
         </div>
 
         {/* Desktop right side */}
-        <div className="hidden shrink-0 items-center gap-3 md:flex">
-          <TranslateButton />
+        <div className="hidden shrink-0 items-center gap-1.5 md:flex lg:gap-2 xl:gap-3">
+          <div className="hidden lg:block"><TranslateButton /></div>
 
           {!loading && (
             user ? (
               <div className="relative" onClick={(e) => e.stopPropagation()}>
                 <button
                   onClick={() => setUserMenuOpen(!userMenuOpen)}
-                  className="flex items-center gap-2 rounded-full border border-neutral-200 bg-white px-4 py-2 text-sm font-semibold text-ink transition-colors hover:bg-neutral-50"
+                  className="flex items-center gap-2 rounded-full border border-neutral-200 bg-white px-3 py-1.5 text-xs font-semibold text-ink transition-colors hover:bg-neutral-50 xl:px-4 xl:py-2 xl:text-sm"
                 >
                   <span className="flex h-6 w-6 items-center justify-center rounded-full bg-ink text-xs font-bold text-hivis">
                     {user.name.charAt(0).toUpperCase()}
@@ -227,7 +231,7 @@ export default function Navbar() {
 
           <Link
             href={findMachinesHref}
-            className="rounded-full bg-hivis px-6 py-2.5 text-sm font-bold text-ink shadow-sm transition-all duration-200 hover:bg-hivis-dark hover:shadow-md hover:-translate-y-0.5 active:translate-y-0 active:scale-95"
+            className="rounded-full bg-hivis px-4 py-2 text-xs font-bold text-ink shadow-sm transition-all duration-200 hover:bg-hivis-dark hover:shadow-md hover:-translate-y-0.5 active:translate-y-0 active:scale-95 xl:px-6 xl:py-2.5 xl:text-sm"
           >
             {t.navFindMachines}
           </Link>
@@ -372,8 +376,40 @@ export default function Navbar() {
         </div>
       </div>
 
+      {/* ── LOGOUT CONFIRMATION MODAL ── */}
+      {showLogoutModal && createPortal(
+        <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/50 p-4">
+          <div className="w-full max-w-sm rounded-2xl bg-white p-6 shadow-2xl text-left">
+            <div className="flex h-12 w-12 items-center justify-center rounded-full bg-neutral-100">
+              <svg className="h-6 w-6 text-neutral-600" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0 0 13.5 3h-6a2.25 2.25 0 0 0-2.25 2.25v13.5A2.25 2.25 0 0 0 7.5 21h6a2.25 2.25 0 0 0 2.25-2.25V15M12 9l-3 3m0 0 3 3m-3-3h12.75" />
+              </svg>
+            </div>
+            <h3 className="mt-4 text-lg font-bold text-ink">Log out?</h3>
+            <p className="mt-2 text-sm text-neutral-500">
+              Are you sure you want to log out of your Myequipo account?
+            </p>
+            <div className="mt-6 flex gap-3">
+              <button
+                onClick={() => setShowLogoutModal(false)}
+                className="flex-1 rounded-full border border-neutral-300 py-2.5 text-sm font-semibold text-ink hover:bg-neutral-50"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={confirmLogout}
+                className="flex-1 rounded-full bg-ink py-2.5 text-sm font-semibold text-white hover:bg-neutral-800"
+              >
+                Yes, log out
+              </button>
+            </div>
+          </div>
+        </div>,
+        document.body
+      )}
+
       {/* ── DELETE ACCOUNT MODAL ── */}
-      {showDeleteModal && mounted && createPortal(
+      {showDeleteModal && createPortal(
         <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/50 p-4">
           <div className="w-full max-w-sm rounded-2xl bg-white p-6 shadow-2xl text-left">
             <div className="flex h-12 w-12 items-center justify-center rounded-full bg-red-100">

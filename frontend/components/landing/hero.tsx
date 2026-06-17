@@ -50,7 +50,7 @@ export default function Hero() {
               {t.heroHeadline1}{" "}
               <span className="relative inline-block">
                 {t.heroHeadlineHighlight}
-                <span className="absolute bottom-1 left-0 -z-0 h-3 w-full bg-hivis/60" />
+                <span className="absolute -bottom-1 left-0 -z-10 h-[0.85em] w-full bg-hivis/70" />
               </span>{" "}
               {t.heroHeadline2}
             </h1>

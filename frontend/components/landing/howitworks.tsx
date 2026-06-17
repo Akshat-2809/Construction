@@ -35,7 +35,7 @@ export default function HowItWorks() {
             {t.howHeadline1}{" "}
             <span className="relative inline-block">
               {t.howHeadlineHighlight}
-              <span className="absolute bottom-1 left-0 h-3 w-full bg-hivis/60" />
+              <span className="absolute bottom-0 left-0 -z-10 h-[45%] w-full bg-hivis/70" />
             </span>
           </h2>
           <p className="mt-5 text-lg leading-relaxed text-neutral-600">{t.howSubtext}</p>
