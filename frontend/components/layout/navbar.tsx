@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { createPortal } from "react-dom";
+import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useLang } from "@/context/LanguageContext";
@@ -30,6 +31,7 @@ export default function Navbar() {
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [deleteError, setDeleteError] = useState("");
+  const [mounted, setMounted] = useState(false);
   const { lang } = useLang();
   const t = translations[lang];
   const { user, logout, deleteAccount, loading } = useAuth();
@@ -48,6 +50,10 @@ export default function Navbar() {
     }
     return href;
   }
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 8);
@@ -100,9 +106,14 @@ export default function Navbar() {
       >
         {/* Logo */}
         <Link href="/" className="group flex shrink-0 items-center gap-2.5">
-            <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-ink text-base font-bold text-hivis transition-transform duration-300 group-hover:rotate-6 group-hover:scale-105">
-            M
-          </span>
+          <Image
+            src="/circle.webp"
+            alt="Myequipo"
+            width={40}
+            height={40}
+            className="h-10 w-10 object-contain transition-opacity duration-200 group-hover:opacity-80"
+            priority
+          />
           <span className="text-xl font-semibold tracking-tight text-ink">Myequipo</span>
         </Link>
 
@@ -362,45 +373,43 @@ export default function Navbar() {
       </div>
 
       {/* ── DELETE ACCOUNT MODAL ── */}
-      {showDeleteModal && typeof document !== "undefined"
-        ? createPortal(
-            <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/50 p-4">
-              <div className="w-full max-w-sm rounded-2xl bg-white p-6 text-left shadow-2xl">
-                <div className="flex h-12 w-12 items-center justify-center rounded-full bg-red-100">
-                  <svg className="h-6 w-6 text-red-600" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z" />
-                  </svg>
-                </div>
-                <h3 className="mt-4 text-lg font-bold text-ink">Delete your account?</h3>
-                <p className="mt-2 text-sm text-neutral-500">
-                  This will permanently delete your account, <span className="font-semibold text-ink">all machines you&apos;ve listed</span>, and any requests you&apos;ve posted. <span className="font-semibold text-red-600">This action cannot be undone</span> — your data can&apos;t be recovered, even if you create a new account afterwards.
-                </p>
+      {showDeleteModal && mounted && createPortal(
+        <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/50 p-4">
+          <div className="w-full max-w-sm rounded-2xl bg-white p-6 shadow-2xl text-left">
+            <div className="flex h-12 w-12 items-center justify-center rounded-full bg-red-100">
+              <svg className="h-6 w-6 text-red-600" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z" />
+              </svg>
+            </div>
+            <h3 className="mt-4 text-lg font-bold text-ink">Delete your account?</h3>
+            <p className="mt-2 text-sm text-neutral-500">
+              This will permanently delete your account, <span className="font-semibold text-ink">all machines you&apos;ve listed</span>, and any requests you&apos;ve posted. <span className="font-semibold text-red-600">This action cannot be undone</span> — your data can&apos;t be recovered, even if you create a new account afterwards.
+            </p>
 
-                {deleteError && (
-                  <p className="mt-3 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-600">{deleteError}</p>
-                )}
+            {deleteError && (
+              <p className="mt-3 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-600">{deleteError}</p>
+            )}
 
-                <div className="mt-6 flex gap-3">
-                  <button
-                    onClick={() => setShowDeleteModal(false)}
-                    disabled={deleting}
-                    className="flex-1 rounded-full border border-neutral-300 py-2.5 text-sm font-semibold text-ink hover:bg-neutral-50 disabled:opacity-60"
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    onClick={handleDeleteAccount}
-                    disabled={deleting}
-                    className="flex-1 rounded-full bg-red-600 py-2.5 text-sm font-semibold text-white hover:bg-red-700 disabled:opacity-60"
-                  >
-                    {deleting ? "Deleting…" : "Yes, delete my account"}
-                  </button>
-                </div>
-              </div>
-            </div>,
-            document.body
-          )
-        : null}
+            <div className="mt-6 flex gap-3">
+              <button
+                onClick={() => setShowDeleteModal(false)}
+                disabled={deleting}
+                className="flex-1 rounded-full border border-neutral-300 py-2.5 text-sm font-semibold text-ink hover:bg-neutral-50 disabled:opacity-60"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleDeleteAccount}
+                disabled={deleting}
+                className="flex-1 rounded-full bg-red-600 py-2.5 text-sm font-semibold text-white hover:bg-red-700 disabled:opacity-60"
+              >
+                {deleting ? "Deleting…" : "Yes, delete my account"}
+              </button>
+            </div>
+          </div>
+        </div>,
+        document.body
+      )}
     </header>
   );
 }
