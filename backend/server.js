@@ -8,6 +8,7 @@ const machineRoutes = require("./routes/machines");
 const requestRoutes = require("./routes/requests");
 const authRoutes = require("./routes/auth");
 const adminRoutes = require("./routes/admin");
+const webhookRoutes = require("./routes/webhook");
 
 connectDB();
 
@@ -36,6 +37,7 @@ app.use("/api/machines", machineRoutes);
 app.use("/api/requests", requestRoutes);
 app.use("/api/auth", authRoutes);
 app.use("/api/admin", adminRoutes);
+app.use("/webhook", webhookRoutes);
 
 app.get("/", (req, res) => {
   res.send("Myequipo backend is running 🚀");
