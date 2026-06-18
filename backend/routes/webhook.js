@@ -330,14 +330,18 @@ router.post("/", async (req, res) => {
       return;
     }
 
-    // ── Language selection step ───────────────────────────────────────────────
-    if (session.step === "lang_select" || isGreeting(text)) {
+    // ── FIX: Only show the welcome/language picker on an actual greeting.
+    // The old condition was `session.step === "lang_select" || isGreeting(text)`,
+    // which meant EVERY message sent while still in lang_select (including the
+    // "1" / "2" language picks themselves) got caught here and re-showed the
+    // welcome screen, so the real language-selection handler below was
+    // never reached. Now this block only fires on a genuine greeting.
+    if (isGreeting(text)) {
       // Reset to fresh lang_select on any greeting
       sessions.set(from, { step: "lang_select", lang: null, data: {} });
 
       // Show welcome + language picker (always bilingual)
       await send(from, msgs.en.welcome);
-      setSession(from, { step: "lang_select" });
       return;
     }
 
