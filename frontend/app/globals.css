@@ -1,5 +1,8 @@
 @import "tailwindcss";
 
+/* Enable class-based dark mode for Tailwind v4 */
+@variant dark (&:where(.dark, .dark *));
+
 @theme {
   --color-ink: #1A1A1A;
   --color-ink-soft: #3F3F46;
@@ -8,20 +11,100 @@
   --color-mist: #F4F4F5;
 }
 
+/* ── Light mode (default) ── */
 :root {
   --background: #ffffff;
-  --foreground: #171717;
+  --foreground: #1A1A1A;
+  --footer-bg: #1A1A1A;
+}
+
+/* ── Dark mode overrides ── */
+.dark {
+  --background: #0f0f0f;
+  --foreground: #f5f5f5;
+  --footer-bg: #111111;
+
+  /* Override Tailwind theme tokens */
+  --color-ink: #f5f5f5;
+  --color-ink-soft: #d4d4d4;
+  --color-mist: #1f1f1f;
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
+  transition: background 0.25s ease, color 0.25s ease;
 }
 
+/* ── Dark mode global overrides ── */
+.dark body {
+  background-color: #0f0f0f;
+  color: #f5f5f5;
+}
+
+.dark *:where(section, main, div, header, footer, nav, aside) {
+  --tw-bg-opacity: 1;
+}
+
+/* Surfaces */
+.dark .bg-white { background-color: #1a1a1a !important; }
+.dark .bg-white\/85 { background-color: rgba(15,15,15,0.85) !important; }
+.dark .bg-white\/90 { background-color: rgba(26,26,26,0.9) !important; }
+.dark .bg-neutral-50 { background-color: #242424 !important; }
+.dark .hover\:bg-neutral-50:hover { background-color: #242424 !important; }
+.dark .bg-neutral-100 { background-color: #2a2a2a !important; }
+.dark .bg-neutral-200 { background-color: #333333 !important; }
+.dark .bg-mist { background-color: #1f1f1f !important; }
+.dark .hover\:bg-mist:hover { background-color: #2a2a2a !important; }
+
+/* Borders */
+.dark .border-neutral-100 { border-color: #2a2a2a !important; }
+.dark .border-neutral-200 { border-color: #2e2e2e !important; }
+.dark .border-neutral-300 { border-color: #3a3a3a !important; }
+.dark .border-transparent { border-color: transparent !important; }
+
+/* Text */
+.dark .text-neutral-400 { color: #737373 !important; }
+.dark .text-neutral-500 { color: #a3a3a3 !important; }
+.dark .text-neutral-600 { color: #d4d4d4 !important; }
+.dark .text-neutral-700 { color: #e5e5e5 !important; }
+.dark .text-ink { color: #f5f5f5 !important; }
+
+/* Form inputs */
+.dark input,
+.dark textarea,
+.dark select {
+  background-color: #242424 !important;
+  border-color: #3a3a3a !important;
+  color: #f5f5f5 !important;
+}
+.dark input::placeholder,
+.dark textarea::placeholder {
+  color: #737373 !important;
+}
+
+/* Cards & rounded surfaces */
+.dark .rounded-2xl,
+.dark .rounded-xl,
+.dark .rounded-3xl {
+  background-color: inherit;
+}
+
+/* Shadows look odd in dark mode — soften */
+.dark .shadow-lg { box-shadow: 0 4px 24px rgba(0,0,0,0.5) !important; }
+.dark .shadow-sm { box-shadow: 0 1px 4px rgba(0,0,0,0.4) !important; }
+.dark .hover\:shadow-lg:hover { box-shadow: 0 4px 24px rgba(0,0,0,0.5) !important; }
+.dark .hover\:shadow-md:hover { box-shadow: 0 2px 12px rgba(0,0,0,0.4) !important; }
+
+/* Page background */
+.dark .bg-white:is(section, main) { background-color: #0f0f0f !important; }
+
+/* Footer dark mode */
+.dark .bg-ink { background-color: #1a1a1a !important; }
+.dark .dark\:bg-neutral-900 { background-color: #111111 !important; }
+
 @media (prefers-reduced-motion: reduce) {
-  *,
-  *::before,
-  *::after {
+  *, *::before, *::after {
     animation-duration: 0.01ms !important;
     transition-duration: 0.01ms !important;
   }

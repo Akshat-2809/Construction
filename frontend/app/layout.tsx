@@ -3,6 +3,7 @@ import Navbar from "@/components/layout/navbar";
 import Footer from "@/components/layout/footer";
 import { LanguageProvider } from "@/context/LanguageContext";
 import { AuthProvider } from "@/context/AuthContext";
+import { ThemeProvider } from "@/context/themeContext";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -22,13 +23,15 @@ export default function RootLayout({
         <meta name="google" content="notranslate" />
       </head>
       <body className="flex min-h-screen flex-col">
-        <AuthProvider>
-          <LanguageProvider>
-            <Navbar />
-            <main className="flex-1">{children}</main>
-            <Footer />
-          </LanguageProvider>
-        </AuthProvider>
+        <ThemeProvider>
+          <AuthProvider>
+            <LanguageProvider>
+              <Navbar />
+              <main className="flex-1">{children}</main>
+              <Footer />
+            </LanguageProvider>
+          </AuthProvider>
+        </ThemeProvider>
       </body>
     </html>
   );

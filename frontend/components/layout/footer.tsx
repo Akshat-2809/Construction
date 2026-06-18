@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 
 const footerLinks = {
   Marketplace: [
@@ -43,23 +44,27 @@ const socials = [
 
 export default function Footer() {
   return (
-    <footer className="bg-ink text-neutral-300">
+    <footer className="text-neutral-300 transition-colors duration-200" style={{ backgroundColor: "var(--footer-bg, #1A1A1A)" }}>
       <div className="mx-auto max-w-7xl px-6 py-12 lg:px-8">
         {/* Top: brand + columns */}
         <div className="grid grid-cols-2 gap-6 md:grid-cols-4 lg:gap-8">
           {/* Brand block */}
           <div className="col-span-2 md:col-span-1">
-            <Link href="/" className="flex items-center gap-2">
-              <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-hivis text-sm font-bold text-ink">
-                M
-              </span>
+            <Link href="/" className="flex items-center gap-2.5">
+              <Image
+                src="/circle.webp"
+                alt="Myequipo"
+                width={32}
+                height={32}
+                className="h-8 w-8 object-contain"
+              />
               <span className="text-lg font-semibold tracking-tight text-white">
                 Myequipo
               </span>
             </Link>
             <p className="mt-3 max-w-xs text-sm leading-relaxed text-neutral-400">
               The marketplace connecting contractors with the machinery they
-              need find, compare, and contact owners directly.
+              need — find, compare, and contact owners directly.
             </p>
             <div className="mt-4 flex gap-2">
               {socials.map((s) => (
@@ -67,7 +72,7 @@ export default function Footer() {
                   key={s.label}
                   href={s.href}
                   aria-label={s.label}
-                  className="flex h-8 w-8 items-center justify-center rounded-full bg-neutral-800 text-neutral-400 transition-colors hover:bg-hivis hover:text-ink"
+                  className="flex h-8 w-8 items-center justify-center rounded-full bg-neutral-800 text-neutral-400 transition-colors hover:bg-hivis hover:text-ink dark:bg-neutral-700 dark:hover:bg-hivis"
                 >
                   <svg className="h-3 w-3" fill="currentColor" viewBox="0 0 24 24">
                     {s.icon}
@@ -102,7 +107,7 @@ export default function Footer() {
         </div>
 
         {/* Divider */}
-        <div className="mt-9 border-t border-neutral-800 pt-6">
+        <div className="mt-9 border-t border-neutral-800 pt-6 dark:border-neutral-700">
           <div className="flex flex-col items-center justify-between gap-4 sm:flex-row">
             <p className="text-sm text-neutral-500">
               © {new Date().getFullYear()} Myequipo Machinery. All rights reserved.
