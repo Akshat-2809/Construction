@@ -10,7 +10,7 @@ router.get("/", (req, res) => {
 
   if (
     mode === "subscribe" &&
-    token === process.env.VERIFY_TOKEN
+    token === process.env.WHATSAPP_VERIFY_TOKEN
   ) {
     console.log("✅ WEBHOOK VERIFIED");
     return res.status(200).send(challenge);
@@ -36,13 +36,15 @@ router.post("/", async (req, res) => {
       return res.sendStatus(200);
     }
 
+    console.log("PHONE_NUMBER_ID =", process.env.PHONE_NUMBER_ID);
+    console.log("TOKEN EXISTS =", !!process.env.WHATSAPP_TOKEN);
+
     const from = message.from;
 
     const userText =
-      message.text?.body?.toLowerCase() || "";
+      message.text?.body?.toLowerCase().trim() || "";
 
-    let reply =
-      `👋 Welcome to Myequipo
+    let reply = `👋 Welcome to Myequipo
 
 1️⃣ Rent Equipment
 2️⃣ List Equipment
@@ -65,8 +67,12 @@ Reply with 1, 2 or 3`;
         "📞 Our team will contact you shortly.";
     }
 
-    await axios.post(
-      `https://graph.facebook.com/v25.0/${process.env.PHONE_NUMBER_ID}/messages`,
+    const url = `https://graph.facebook.com/v25.0/${process.env.PHONE_NUMBER_ID}/messages`;
+
+    console.log("REQUEST URL =", url);
+
+    const response = await axios.post(
+      url,
       {
         messaging_product: "whatsapp",
         to: from,
@@ -83,6 +89,7 @@ Reply with 1, 2 or 3`;
       }
     );
 
+    console.log("META RESPONSE =", response.data);
     console.log("✅ Reply Sent");
 
     return res.sendStatus(200);
