@@ -1,9 +1,11 @@
 const express = require("express");
-const axios = require("axios");
+const Machine = require("../models/machine");
+const WhatsappSubscriber = require("../models/whatsappSubscriber");
+const { sendWhatsappText, SITE_URL } = require("../utils/whatsapp");
 
 const router = express.Router();
 
-// ── In-memory session store ──────────────────────────────────────────────────
+// ── In-memory session store (conversation step + lang) ───────────────────────
 const sessions = new Map();
 
 function getSession(phone) {
@@ -22,17 +24,45 @@ function clearSession(phone) {
   sessions.set(phone, { step: "lang_select", lang: null, data: {} });
 }
 
+// ── Track subscriber in DB (used for broadcasts later) ────────────────────────
+async function trackSubscriber(phone, lang) {
+  try {
+    await WhatsappSubscriber.findOneAndUpdate(
+      { phone },
+      {
+        phone,
+        ...(lang ? { lang } : {}),
+        lastMessageAt: new Date(),
+        optedOut: false,
+      },
+      { upsert: true, new: true }
+    );
+  } catch (err) {
+    console.error("⚠️ Failed to track subscriber:", err.message);
+  }
+}
+
 // ── Constants ────────────────────────────────────────────────────────────────
-const SITE_URL    = "https://myequipo.com";
 const SUPPORT_EMAIL = "myequipomachines@gmail.com";
 const SUPPORT_PHONE = "9980952438";
 
-const MACHINE_TYPES_EN = [
-  "excavator", "concrete pump", "fiori", "jcb", "crane",
-  "hydra", "mobile crane", "mixer",
-];
-const MACHINE_TYPES_HI = ["खुदाई", "क्रेन", "मिक्सर", "कंक्रीट पंप"];
-const ALL_MACHINE_TYPES = [...MACHINE_TYPES_EN, ...MACHINE_TYPES_HI];
+// Maps user-typed keyword -> exact DB category value
+const MACHINE_CATEGORY_MAP = {
+  excavator: "Excavator",
+  "concrete pump": "Concrete Pump",
+  concrete: "Concrete Pump",
+  fiori: "Fiori",
+  jcb: "JCB",
+  crane: "Crane",
+  hydra: "Crane",
+  "mobile crane": "Crane",
+  // Hindi
+  "खुदाई": "Excavator",
+  "क्रेन": "Crane",
+  "मिक्सर": "Fiori",
+  "कंक्रीट पंप": "Concrete Pump",
+};
+const ALL_MACHINE_KEYWORDS = Object.keys(MACHINE_CATEGORY_MAP);
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
 function containsAny(text, keywords) {
@@ -50,7 +80,7 @@ function isMachineRequest(text) {
   return containsAny(text, [
     "rent", "hire", "need", "want", "chahiye", "चाहिए",
     "किराया", "किराए", "book", "find", "machine chahiye",
-    ...ALL_MACHINE_TYPES,
+    ...ALL_MACHINE_KEYWORDS,
   ]);
 }
 
@@ -113,7 +143,7 @@ ${SITE_URL}/machinery
 
 Filter by machine type, location, availability & price.
 
-Or type the machine you need (e.g. *Excavator*) for more help.
+Or type the machine you need (e.g. *Excavator*) and I'll show you live availability.
 
 Type *0* for main menu.`,
 
@@ -152,17 +182,16 @@ We respond within *24 hours*.
 
 Type *0* for main menu.`,
 
-    machineType: (type) => `🔍 Looking for a *${type}*?
+    machineAvailable: (type, count) => `🔍 *${type}* availability
 
-Browse available ${type}s near you:
-${SITE_URL}/machinery
+${count > 0
+  ? `✅ We have *${count} ${type}${count > 1 ? "s" : ""}* available right now!`
+  : `😔 No ${type}s are available right now, but new listings come in daily.`}
 
-Use the *Category* filter, then call the owner directly — no middlemen!
+👉 ${count > 0 ? "Book one now:" : "Check back or browse all machines:"}
+${SITE_URL}/machinery?category=${encodeURIComponent(type)}
 
-💡 Can't find one? Post a request:
-${SITE_URL}/machinery/request
-
-Type *0* for main menu.`,
+${count === 0 ? `💡 Or post a request and get notified:\n${SITE_URL}/machinery/request\n\n` : ""}Type *0* for main menu.`,
 
     goodbye: `👋 *Thank you for using Myequipo!*
 
@@ -214,7 +243,7 @@ ${SITE_URL}/machinery
 
 मशीन का प्रकार, स्थान, उपलब्धता और कीमत से फ़िल्टर करें।
 
-या जो मशीन चाहिए उसका नाम टाइप करें (जैसे *Excavator*) और हम और मदद करेंगे।
+या जो मशीन चाहिए उसका नाम टाइप करें (जैसे *Excavator*) और मैं लाइव उपलब्धता दिखाऊंगा।
 
 *0* टाइप करें — मुख्य मेनू।`,
 
@@ -253,17 +282,16 @@ ${SITE_URL}/machinery/request
 
 *0* टाइप करें — मुख्य मेनू।`,
 
-    machineType: (type) => `🔍 *${type}* की तलाश है?
+    machineAvailable: (type, count) => `🔍 *${type}* उपलब्धता
 
-अपने पास उपलब्ध ${type} देखें:
-${SITE_URL}/machinery
+${count > 0
+  ? `✅ अभी *${count} ${type}* उपलब्ध हैं!`
+  : `😔 अभी कोई ${type} उपलब्ध नहीं है, लेकिन रोज़ नई लिस्टिंग आती हैं।`}
 
-*Category* फ़िल्टर इस्तेमाल करें, फिर मालिक को सीधे कॉल करें — कोई बिचौलिया नहीं!
+👉 ${count > 0 ? "अभी बुक करें:" : "सभी मशीनें देखें:"}
+${SITE_URL}/machinery?category=${encodeURIComponent(type)}
 
-💡 नहीं मिल रहा? रिक्वेस्ट पोस्ट करें:
-${SITE_URL}/machinery/request
-
-*0* टाइप करें — मुख्य मेनू।`,
+${count === 0 ? `💡 या रिक्वेस्ट पोस्ट करें:\n${SITE_URL}/machinery/request\n\n` : ""}*0* टाइप करें — मुख्य मेनू।`,
 
     goodbye: `👋 *Myequipo का उपयोग करने के लिए धन्यवाद!*
 
@@ -297,23 +325,27 @@ router.get("/", (req, res) => {
 
 // ── Webhook POST — incoming messages ─────────────────────────────────────────
 router.post("/", async (req, res) => {
-  res.sendStatus(200); // always respond fast
+  res.sendStatus(200); // always respond fast so Meta doesn't retry
 
   try {
     const body    = req.body;
     const message = body.entry?.[0]?.changes?.[0]?.value?.messages?.[0];
     if (!message) return;
 
+    const from = message.from;
+
+    // Track every inbound message as a live subscriber touch
+    await trackSubscriber(from);
+
     if (message.type !== "text") {
-      const session = getSession(message.from);
+      const session = getSession(from);
       const lang    = session.lang || "en";
-      await send(message.from, `👋 ` + (lang === "hi"
-        ? "मैं अभी केवल टेक्स्ट संदेश समझ सकता हूं।\n\n" + msgs.hi.mainMenu()
-        : "I can only handle text messages right now.\n\n" + msgs.en.mainMenu()));
+      await sendWhatsappText(from, lang === "hi"
+        ? "👋 मैं अभी केवल टेक्स्ट संदेश समझ सकता हूं।\n\n" + msgs.hi.mainMenu()
+        : "👋 I can only handle text messages right now.\n\n" + msgs.en.mainMenu());
       return;
     }
 
-    const from    = message.from;
     const rawText = message.text?.body?.trim() || "";
     const text    = rawText.toLowerCase();
 
@@ -323,25 +355,27 @@ router.post("/", async (req, res) => {
     const lang    = session.lang || "en";
     const m       = msgs[lang];
 
-    // ── End chat ──────────────────────────────────────────────────────────────
-    if (isEndChat(text)) {
+    // ── Opt-out (stops future broadcasts) ─────────────────────────────────────
+    if (text === "stop" || text === "unsubscribe" || text === "बंद करो") {
+      await WhatsappSubscriber.findOneAndUpdate({ phone: from }, { optedOut: true });
       clearSession(from);
-      await send(from, m.goodbye);
+      await sendWhatsappText(from, lang === "hi"
+        ? "✅ आपको अब लिस्टिंग अपडेट नहीं मिलेंगे। दोबारा शुरू करने के लिए *hi* भेजें।"
+        : "✅ You won't receive listing updates anymore. Send *hi* to start again.");
       return;
     }
 
-    // ── FIX: Only show the welcome/language picker on an actual greeting.
-    // The old condition was `session.step === "lang_select" || isGreeting(text)`,
-    // which meant EVERY message sent while still in lang_select (including the
-    // "1" / "2" language picks themselves) got caught here and re-showed the
-    // welcome screen, so the real language-selection handler below was
-    // never reached. Now this block only fires on a genuine greeting.
-    if (isGreeting(text)) {
-      // Reset to fresh lang_select on any greeting
-      sessions.set(from, { step: "lang_select", lang: null, data: {} });
+    // ── End chat ──────────────────────────────────────────────────────────────
+    if (isEndChat(text)) {
+      clearSession(from);
+      await sendWhatsappText(from, m.goodbye);
+      return;
+    }
 
-      // Show welcome + language picker (always bilingual)
-      await send(from, msgs.en.welcome);
+    // ── Greeting → show welcome + language picker ────────────────────────────
+    if (isGreeting(text)) {
+      sessions.set(from, { step: "lang_select", lang: null, data: {} });
+      await sendWhatsappText(from, msgs.en.welcome);
       return;
     }
 
@@ -349,13 +383,14 @@ router.post("/", async (req, res) => {
     if (session.step === "lang_select") {
       if (text === "1" || text === "english" || text === "en") {
         setSession(from, { step: "main", lang: "en" });
-        await send(from, msgs.en.langConfirm + msgs.en.mainMenu());
+        await trackSubscriber(from, "en");
+        await sendWhatsappText(from, msgs.en.langConfirm + msgs.en.mainMenu());
       } else if (text === "2" || text === "hindi" || text === "हिंदी" || text === "hi" || text === "हिन्दी") {
         setSession(from, { step: "main", lang: "hi" });
-        await send(from, msgs.hi.langConfirm + msgs.hi.mainMenu());
+        await trackSubscriber(from, "hi");
+        await sendWhatsappText(from, msgs.hi.langConfirm + msgs.hi.mainMenu());
       } else {
-        // Didn't pick a valid option — re-show language picker
-        await send(from, `Please reply with *1* for English or *2* for हिंदी.\n\nकृपया *1* (English) या *2* (हिंदी) टाइप करें।`);
+        await sendWhatsappText(from, `Please reply with *1* for English or *2* for हिंदी.\n\nकृपया *1* (English) या *2* (हिंदी) टाइप करें।`);
       }
       return;
     }
@@ -363,82 +398,73 @@ router.post("/", async (req, res) => {
     // ── Back to main menu ─────────────────────────────────────────────────────
     if (text === "0" || text === "back" || text === "menu" || text === "मेनू") {
       setSession(from, { step: "main" });
-      await send(from, m.mainMenu());
+      await sendWhatsappText(from, m.mainMenu());
       return;
     }
 
     // ── Main menu options ─────────────────────────────────────────────────────
     if (text === "1" || (session.step === "main" && isMachineRequest(text))) {
       setSession(from, { step: "renting" });
-      await send(from, m.rent);
+      await sendWhatsappText(from, m.rent);
       return;
     }
 
     if (text === "2" || (session.step === "main" && isListRequest(text))) {
       setSession(from, { step: "listing" });
-      await send(from, m.list);
+      await sendWhatsappText(from, m.list);
       return;
     }
 
     if (text === "3") {
       setSession(from, { step: "requesting" });
-      await send(from, m.request);
+      await sendWhatsappText(from, m.request);
       return;
     }
 
     if (text === "4" || (session.step === "main" && isContactRequest(text))) {
       setSession(from, { step: "contact" });
-      await send(from, m.contact);
+      await sendWhatsappText(from, m.contact);
       return;
     }
 
-    // ── Machine type detection (from renting step) ────────────────────────────
+    // ── Machine type detection (live DB count) ────────────────────────────────
     if (session.step === "renting") {
-      const matched = ALL_MACHINE_TYPES.find((mt) => text.includes(mt));
-      if (matched) {
-        const display = matched.charAt(0).toUpperCase() + matched.slice(1);
-        await send(from, m.machineType(display));
+      const matchedKeyword = ALL_MACHINE_KEYWORDS.find((kw) => text.includes(kw));
+
+      if (matchedKeyword) {
+        const category = MACHINE_CATEGORY_MAP[matchedKeyword];
+        let count = 0;
+        try {
+          count = await Machine.countDocuments({ category, availability: "yes" });
+        } catch (err) {
+          console.error("⚠️ Machine count query failed:", err.message);
+        }
+        await sendWhatsappText(from, m.machineAvailable(category, count));
         return;
       }
       // Unknown reply inside renting — re-show rent menu
-      await send(from, m.rent);
+      await sendWhatsappText(from, m.rent);
       return;
     }
 
     // ── Inside other steps — handle number shortcuts ──────────────────────────
     if (["listing", "requesting", "contact"].includes(session.step)) {
-      if (text === "1") { setSession(from, { step: "renting" });    await send(from, m.rent);    return; }
-      if (text === "2") { setSession(from, { step: "listing" });    await send(from, m.list);    return; }
-      if (text === "3") { setSession(from, { step: "requesting" }); await send(from, m.request); return; }
-      if (text === "4") { setSession(from, { step: "contact" });    await send(from, m.contact); return; }
-      // Re-show current step's message
+      if (text === "1") { setSession(from, { step: "renting" });    await sendWhatsappText(from, m.rent);    return; }
+      if (text === "2") { setSession(from, { step: "listing" });    await sendWhatsappText(from, m.list);    return; }
+      if (text === "3") { setSession(from, { step: "requesting" }); await sendWhatsappText(from, m.request); return; }
+      if (text === "4") { setSession(from, { step: "contact" });    await sendWhatsappText(from, m.contact); return; }
       const stepMsg = { listing: m.list, requesting: m.request, contact: m.contact };
-      await send(from, stepMsg[session.step]);
+      await sendWhatsappText(from, stepMsg[session.step]);
       return;
     }
 
     // ── Fallback ──────────────────────────────────────────────────────────────
     setSession(from, { step: "main" });
-    await send(from, m.unknown + m.mainMenu());
+    await sendWhatsappText(from, m.unknown + m.mainMenu());
 
   } catch (err) {
     console.error("❌ Webhook error:", err.response?.data || err.message);
   }
 });
-
-// ── Send message helper ───────────────────────────────────────────────────────
-async function send(to, text) {
-  const url = `https://graph.facebook.com/v25.0/${process.env.PHONE_NUMBER_ID}/messages`;
-  try {
-    const res = await axios.post(
-      url,
-      { messaging_product: "whatsapp", to, type: "text", text: { body: text } },
-      { headers: { Authorization: `Bearer ${process.env.WHATSAPP_TOKEN}`, "Content-Type": "application/json" } }
-    );
-    console.log(`✅ Sent to ${to}:`, res.data?.messages?.[0]?.id);
-  } catch (err) {
-    console.error("❌ Send failed:", err.response?.data || err.message);
-  }
-}
 
 module.exports = router;

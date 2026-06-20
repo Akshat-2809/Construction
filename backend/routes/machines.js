@@ -2,6 +2,7 @@ const express = require("express");
 const router = express.Router();
 const Machine = require("../models/machine");
 const authMiddleware = require("../middleware/auth");
+const { broadcastNewListing } = require("../utils/broadcast");
 
 // GET /api/machines — public
 router.get("/", async (req, res) => {
@@ -45,6 +46,12 @@ router.post("/", authMiddleware, async (req, res) => {
 
     const saved = await newMachine.save();
     res.status(201).json(saved);
+
+    // Notify WhatsApp subscribers — fire-and-forget, doesn't block the response
+    // or fail the listing creation if WhatsApp sending has issues.
+    broadcastNewListing(saved).catch((err) =>
+      console.error("⚠️ broadcastNewListing failed:", err.message)
+    );
   } catch (error) {
     res.status(400).json({ message: "Failed to create machine", error: error.message });
   }
