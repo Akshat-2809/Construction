@@ -11,8 +11,7 @@ const { sendWhatsappText, SITE_URL } = require("./whatsapp");
  * window will silently fail to receive it unless you switch to
  * sendWhatsappTemplate() with a Meta-approved template.
  *
- * This function is intentionally simple for now (per your instruction to
- * start with all users). It throttles sends with a small delay to avoid
+ * This function is intentionally simple for now It throttles sends with a small delay to avoid
  * hammering the Cloud API rate limit.
  */
 async function broadcastNewListing(machine) {

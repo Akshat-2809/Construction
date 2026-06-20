@@ -1,7 +1,6 @@
 const axios = require("axios");
 
-// const SITE_URL = "https://myequipo.com";
-const SITE_URL = "https://construction-chi-six.vercel.app";
+const SITE_URL = "https://myequipo.com";
 /**
  * Send a free-form text message via WhatsApp Cloud API.
  * NOTE: only works if the recipient messaged you in the last 24 hours
