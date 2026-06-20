@@ -35,7 +35,7 @@ async function trackSubscriber(phone, lang) {
         lastMessageAt: new Date(),
         optedOut: false,
       },
-      { upsert: true, new: true }
+      { upsert: true, returnDocument: "after" }
     );
   } catch (err) {
     console.error("⚠️ Failed to track subscriber:", err.message);
