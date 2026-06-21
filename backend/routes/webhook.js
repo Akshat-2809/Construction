@@ -109,7 +109,7 @@ function isEndChat(text) {
 // ── All messages in EN + HI ──────────────────────────────────────────────────
 const msgs = {
   en: {
-    welcome: `🙏 *Welcome to Myequipo!*
+    welcome: `*Welcome to Myequipo!*
 
 India's construction machinery marketplace — connecting contractors with machine owners directly.
 
@@ -209,7 +209,7 @@ We hope we could help you. 🙏
   },
 
   hi: {
-    welcome: `🙏 *Myequipo में आपका स्वागत है!*
+    welcome: ` *Myequipo में आपका स्वागत है!*
 
 भारत का कंस्ट्रक्शन मशीनरी मार्केटप्लेस — ठेकेदारों को मशीन मालिकों से सीधे जोड़ता है।
 
