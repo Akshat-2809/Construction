@@ -20,6 +20,7 @@ const machineSchema = new mongoose.Schema(
     company: { type: String, required: true },
     model: { type: String, required: true },
     image: { type: String, default: "/excavator.webp" },
+    images: { type: [String], default: [] }, // Cloudinary URLs for multiple images
     location: { type: String, required: true },
     pricePerMonth: { type: Number, required: true },
     modelYear: { type: Number },

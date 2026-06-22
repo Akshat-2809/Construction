@@ -22,6 +22,7 @@ export interface Machine {
   company: string;
   model: string;
   image: string;
+  images?: string[];   // Cloudinary URLs for multiple images
   location: string;
   currentLocation?: string;
   pricePerMonth: number;

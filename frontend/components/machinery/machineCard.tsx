@@ -8,7 +8,7 @@ import { useAuth } from "@/context/AuthContext";
 const API_URL = `${process.env.NEXT_PUBLIC_API_URL}/api/machines`;
 
 export default function MachineCard({ machine }: { machine: Machine }) {
-  const { user } = useAuth();
+  const { user, getAuthHeader } = useAuth();
 
   const [expanded, setExpanded] = useState(false);
   const [editing, setEditing] = useState(false);
@@ -16,6 +16,12 @@ export default function MachineCard({ machine }: { machine: Machine }) {
   const [saveError, setSaveError] = useState("");
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [deleting, setDeleting] = useState(false);
+  const [imgIndex, setImgIndex] = useState(0);
+
+  // Build image list: use images[] if available, else fall back to image
+  const imageList = (machine.images && machine.images.length > 0)
+    ? machine.images
+    : [machine.image];
 
   const [form, setForm] = useState({
     pricePerMonth: String(machine.pricePerMonth ?? ""),
@@ -29,10 +35,6 @@ export default function MachineCard({ machine }: { machine: Machine }) {
       : "",
     modelYear: String(machine.modelYear ?? ""),
     hoursUsed: String(machine.hoursUsed ?? ""),
-    operatorAvailable: machine.operatorAvailable ?? "no",
-    fuelIncluded: machine.fuelIncluded ?? "no",
-    transportAvailable: machine.transportAvailable ?? "no",
-    transportCharges: String(machine.transportCharges ?? ""),
   });
 
   const isAvailable = machine.availability === "yes";
@@ -58,8 +60,7 @@ export default function MachineCard({ machine }: { machine: Machine }) {
       const id = machine._id ?? machine.id;
       const res = await fetch(`${API_URL}/${id}`, {
         method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        credentials: "include",
+        headers: { "Content-Type": "application/json", ...getAuthHeader() },
         body: JSON.stringify({
           ...form,
           pricePerMonth: Number(form.pricePerMonth),
@@ -69,10 +70,6 @@ export default function MachineCard({ machine }: { machine: Machine }) {
             form.availability === "no" && form.availableFrom
               ? form.availableFrom
               : null,
-          operatorAvailable: form.operatorAvailable,
-          fuelIncluded: form.fuelIncluded,
-          transportAvailable: form.transportAvailable,
-          transportCharges: form.transportAvailable === "yes" && form.transportCharges ? Number(form.transportCharges) : null,
         }),
       });
       if (!res.ok) {
@@ -93,7 +90,7 @@ export default function MachineCard({ machine }: { machine: Machine }) {
       const id = machine._id ?? machine.id;
       const res = await fetch(`${API_URL}/${id}`, {
         method: "DELETE",
-        credentials: "include",
+        headers: { ...getAuthHeader() },
       });
       if (!res.ok) {
         const data = await res.json();
@@ -109,15 +106,48 @@ export default function MachineCard({ machine }: { machine: Machine }) {
 
   return (
     <div className="group overflow-hidden rounded-2xl border border-neutral-200 bg-white transition-all duration-300 hover:shadow-lg">
-      {/* Image */}
+      {/* Image slider */}
       <div className="relative aspect-[4/3] overflow-hidden bg-neutral-100">
         <Image
-          src={machine.image}
+          src={imageList[imgIndex]}
           alt={displayName}
           fill
           sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
           className="object-cover transition-transform duration-500 group-hover:scale-105"
         />
+
+        {/* Prev/Next arrows — only if multiple images */}
+        {imageList.length > 1 && (
+          <>
+            <button
+              type="button"
+              onClick={(e) => { e.stopPropagation(); setImgIndex((i) => (i - 1 + imageList.length) % imageList.length); }}
+              className="absolute left-2 top-1/2 -translate-y-1/2 z-10 flex h-8 w-8 items-center justify-center rounded-full bg-black/40 text-white backdrop-blur-sm transition-colors hover:bg-black/60"
+            >
+              <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5 8.25 12l7.5-7.5" /></svg>
+            </button>
+            <button
+              type="button"
+              onClick={(e) => { e.stopPropagation(); setImgIndex((i) => (i + 1) % imageList.length); }}
+              className="absolute right-2 top-1/2 -translate-y-1/2 z-10 flex h-8 w-8 items-center justify-center rounded-full bg-black/40 text-white backdrop-blur-sm transition-colors hover:bg-black/60"
+            >
+              <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5" /></svg>
+            </button>
+
+            {/* Dot indicators */}
+            <div className="absolute bottom-2 left-1/2 z-10 flex -translate-x-1/2 gap-1.5">
+              {imageList.map((_, i) => (
+                <button
+                  key={i}
+                  type="button"
+                  onClick={(e) => { e.stopPropagation(); setImgIndex(i); }}
+                  className={`h-1.5 rounded-full transition-all ${i === imgIndex ? "w-4 bg-white" : "w-1.5 bg-white/60"}`}
+                />
+              ))}
+            </div>
+          </>
+        )}
+
         <span className={`absolute right-3 top-3 rounded-full px-3 py-1 text-xs font-semibold shadow-sm ${isAvailable ? "bg-green-500 text-white" : "bg-neutral-800 text-white"}`}>
           {isAvailable ? "Available" : availableFromFormatted ? `Free from ${availableFromFormatted}` : "Busy"}
         </span>
@@ -166,28 +196,6 @@ export default function MachineCard({ machine }: { machine: Machine }) {
 
               <Detail label="Model year" value={String(machine.modelYear ?? "—")} />
               <Detail label="Hours used" value={machine.hoursUsed != null ? `${machine.hoursUsed.toLocaleString("en-IN")} hrs` : "—"} />
-
-              {/* Operator / Fuel / Transport badges */}
-              <div className="flex flex-wrap gap-2 pt-1">
-                {machine.operatorAvailable === "yes" && (
-                  <span className="inline-flex items-center gap-1 rounded-full bg-green-50 px-2.5 py-1 text-xs font-semibold text-green-700">
-                    <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.501 20.118a7.5 7.5 0 0 1 14.998 0A17.933 17.933 0 0 1 12 21.75c-2.676 0-5.216-.584-7.499-1.632Z" /></svg>
-                    Operator included
-                  </span>
-                )}
-                {machine.fuelIncluded === "yes" && (
-                  <span className="inline-flex items-center gap-1 rounded-full bg-blue-50 px-2.5 py-1 text-xs font-semibold text-blue-700">
-                    <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M12 3v2.25m6.364.386-1.591 1.591M21 12h-2.25m-.386 6.364-1.591-1.591M12 18.75V21m-4.773-4.227-1.591 1.591M5.25 12H3m4.227-4.773L5.636 5.636M15.75 12a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0Z" /></svg>
-                    Fuel included
-                  </span>
-                )}
-                {machine.transportAvailable === "yes" && (
-                  <span className="inline-flex items-center gap-1 rounded-full bg-amber-50 px-2.5 py-1 text-xs font-semibold text-amber-700">
-                    <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M8.25 18.75a1.5 1.5 0 0 1-3 0m3 0a1.5 1.5 0 0 0-3 0m3 0h6m-9 0H3.375a1.125 1.125 0 0 1-1.125-1.125V14.25m17.25 4.5a1.5 1.5 0 0 1-3 0m3 0a1.5 1.5 0 0 0-3 0m3 0h1.125c.621 0 1.129-.504 1.09-1.124a17.902 17.902 0 0 0-3.213-9.193 2.056 2.056 0 0 0-1.58-.86H14.25M16.5 18.75h-2.25m0-11.177v-.958c0-.568-.422-1.048-.987-1.106a48.554 48.554 0 0 0-10.026 0 1.106 1.106 0 0 0-.987 1.106v7.635m12-6.677v6.677m0 4.5v-4.5m0 0h-12" /></svg>
-                    Transport available{machine.transportCharges ? ` · ₹${machine.transportCharges.toLocaleString("en-IN")}` : ""}
-                  </span>
-                )}
-              </div>
               {machine.description && (
                 <p className="pt-1 leading-relaxed text-neutral-500">{machine.description}</p>
               )}
@@ -300,45 +308,6 @@ export default function MachineCard({ machine }: { machine: Machine }) {
               </EditField>
               <EditField label="Description">
                 <textarea rows={3} value={form.description} onChange={(e) => updateForm("description", e.target.value)} className={`${inputClass} resize-none`} />
-              </EditField>
-
-              <EditField label="Operator available?">
-                <div className="flex gap-3">
-                  {(["yes", "no"] as const).map((val) => (
-                    <button key={val} type="button"
-                      onClick={() => updateForm("operatorAvailable", val)}
-                      className={`rounded-full border px-5 py-2 text-sm font-semibold transition-colors ${form.operatorAvailable === val ? "border-ink bg-ink text-white" : "border-neutral-300 bg-white text-ink hover:bg-neutral-50"}`}>
-                      {val === "yes" ? "Yes" : "No"}
-                    </button>
-                  ))}
-                </div>
-              </EditField>
-
-              <EditField label="Fuel included?">
-                <div className="flex gap-3">
-                  {(["yes", "no"] as const).map((val) => (
-                    <button key={val} type="button"
-                      onClick={() => updateForm("fuelIncluded", val)}
-                      className={`rounded-full border px-5 py-2 text-sm font-semibold transition-colors ${form.fuelIncluded === val ? "border-ink bg-ink text-white" : "border-neutral-300 bg-white text-ink hover:bg-neutral-50"}`}>
-                      {val === "yes" ? "Yes" : "No"}
-                    </button>
-                  ))}
-                </div>
-              </EditField>
-
-              <EditField label="Transport charges?">
-                <div className="flex gap-3">
-                  {(["yes", "no"] as const).map((val) => (
-                    <button key={val} type="button"
-                      onClick={() => { updateForm("transportAvailable", val); if (val === "no") updateForm("transportCharges", ""); }}
-                      className={`rounded-full border px-5 py-2 text-sm font-semibold transition-colors ${form.transportAvailable === val ? "border-ink bg-ink text-white" : "border-neutral-300 bg-white text-ink hover:bg-neutral-50"}`}>
-                      {val === "yes" ? "Yes" : "No"}
-                    </button>
-                  ))}
-                </div>
-                {form.transportAvailable === "yes" && (
-                  <input type="number" min={0} placeholder="e.g. 2000" value={form.transportCharges} onChange={(e) => updateForm("transportCharges", e.target.value)} className={`${inputClass} mt-2`} />
-                )}
               </EditField>
               <EditField label="Currently available?">
                 <div className="flex gap-3">

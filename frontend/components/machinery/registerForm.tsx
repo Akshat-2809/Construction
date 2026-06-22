@@ -81,7 +81,9 @@ export default function RegisterForm() {
     return () => clearTimeout(id);
   }, [user]);
 
-  const [preview, setPreview] = useState<string | null>(null);
+  const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
+  const [previews, setPreviews] = useState<string[]>([]);
+  const [previewIndex, setPreviewIndex] = useState(0);
   const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const [error, setError] = useState("");
@@ -113,8 +115,11 @@ export default function RegisterForm() {
   }
 
   function handleImage(e: React.ChangeEvent<HTMLInputElement>) {
-    const file = e.target.files?.[0];
-    if (file) setPreview(URL.createObjectURL(file));
+    const files = Array.from(e.target.files || []).slice(0, 4);
+    if (files.length === 0) return;
+    setSelectedFiles(files);
+    setPreviews(files.map((f) => URL.createObjectURL(f)));
+    setPreviewIndex(0);
   }
 
   const finalState = isOtherState ? form.customState.trim() : form.state;
@@ -139,28 +144,43 @@ export default function RegisterForm() {
     setError("");
 
     try {
+      const formData = new FormData();
+
+      // Append all text fields
+      const fields: Record<string, string | null> = {
+        category: form.category,
+        craneType: isCrane ? form.craneType : null,
+        company: form.company,
+        model: form.model,
+        location: finalLocation,
+        currentLocation: form.currentLocation.trim(),
+        pricePerMonth: String(Number(form.pricePerMonth)),
+        modelYear: String(Number(form.modelYear)),
+        hoursUsed: String(Number(form.hoursUsed)),
+        image: defaultImage,
+        availability: form.availability,
+        availableFrom: form.availability === "no" ? form.availableFrom : null,
+        ownerName: form.ownerName,
+        ownerContact: form.ownerContact,
+        description: form.description,
+        operatorAvailable: form.operatorAvailable,
+        fuelIncluded: form.fuelIncluded,
+        transportAvailable: form.transportAvailable,
+        transportCharges: form.transportAvailable === "yes" && form.transportCharges ? form.transportCharges : null,
+        ownerId: user._id,
+      };
+
+      for (const [key, value] of Object.entries(fields)) {
+        if (value !== null && value !== undefined) formData.append(key, value);
+      }
+
+      // Append image files
+      selectedFiles.forEach((file) => formData.append("images", file));
+
       const res = await fetch(`${API_URL}/api/machines`, {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          ...getAuthHeader(),
-        },
-        body: JSON.stringify({
-          ...form,
-          location: finalLocation,
-          currentLocation: form.currentLocation.trim(),
-          craneType: isCrane ? form.craneType : null,
-          pricePerMonth: Number(form.pricePerMonth),
-          modelYear: Number(form.modelYear),
-          hoursUsed: Number(form.hoursUsed),
-          image: defaultImage,
-          availableFrom: form.availability === "no" ? form.availableFrom : null,
-          operatorAvailable: form.operatorAvailable,
-          fuelIncluded: form.fuelIncluded,
-          transportAvailable: form.transportAvailable,
-          transportCharges: form.transportAvailable === "yes" && form.transportCharges ? Number(form.transportCharges) : null,
-          ownerId: user._id,
-        }),
+        headers: { ...getAuthHeader() }, // No Content-Type — browser sets it with boundary for FormData
+        body: formData,
       });
 
       if (!res.ok) {
@@ -213,7 +233,9 @@ export default function RegisterForm() {
                 operatorAvailable: "no", fuelIncluded: "no",
                 transportAvailable: "no", transportCharges: "",
               });
-              setPreview(null);
+              setSelectedFiles([]);
+              setPreviews([]);
+              setPreviewIndex(0);
             }}
             className="inline-flex items-center justify-center gap-2 rounded-full bg-ink px-6 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-neutral-800"
           >
@@ -229,24 +251,51 @@ export default function RegisterForm() {
       {/* Photo upload */}
       <div>
         <label className="mb-2 block text-sm font-semibold text-ink">{t.regPhotoLabel}</label>
-        <div className="flex items-center gap-5">
+        <div className="flex items-start gap-5">
+          {/* Preview */}
           <div className="relative h-28 w-36 shrink-0 overflow-hidden rounded-xl border border-neutral-200 bg-neutral-100">
-            <Image src={preview ?? defaultImage} alt="Machine preview" fill className="object-cover" sizes="144px" />
-            {!preview && (
+            <Image
+              src={previews[previewIndex] ?? defaultImage}
+              alt="Machine preview"
+              fill
+              className="object-cover"
+              sizes="144px"
+            />
+            {previews.length === 0 && (
               <span className="absolute inset-x-0 bottom-0 bg-black/50 py-1 text-center text-[10px] font-medium text-white">
                 {form.category ? `${form.category} (${t.regPhotoDefault})` : t.regPhotoDefault}
               </span>
             )}
+            {/* Prev/Next arrows for multiple previews */}
+            {previews.length > 1 && (
+              <>
+                <button type="button" onClick={() => setPreviewIndex((i) => (i - 1 + previews.length) % previews.length)}
+                  className="absolute left-1 top-1/2 -translate-y-1/2 flex h-6 w-6 items-center justify-center rounded-full bg-black/50 text-white hover:bg-black/70">
+                  <svg className="h-3 w-3" fill="none" viewBox="0 0 24 24" strokeWidth={3} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5 8.25 12l7.5-7.5" /></svg>
+                </button>
+                <button type="button" onClick={() => setPreviewIndex((i) => (i + 1) % previews.length)}
+                  className="absolute right-1 top-1/2 -translate-y-1/2 flex h-6 w-6 items-center justify-center rounded-full bg-black/50 text-white hover:bg-black/70">
+                  <svg className="h-3 w-3" fill="none" viewBox="0 0 24 24" strokeWidth={3} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5" /></svg>
+                </button>
+                <span className="absolute bottom-1 right-2 text-[10px] font-bold text-white drop-shadow">
+                  {previewIndex + 1}/{previews.length}
+                </span>
+              </>
+            )}
           </div>
+
           <div>
             <label className="inline-flex cursor-pointer items-center gap-2 rounded-full border border-neutral-300 px-5 py-2.5 text-sm font-semibold text-ink transition-colors hover:bg-mist">
               <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5m-13.5-9L12 3m0 0 4.5 4.5M12 3v13.5" />
               </svg>
               {t.regPhotoBtn}
-              <input type="file" accept="image/*" onChange={handleImage} className="hidden" />
+              <input type="file" accept="image/*" multiple onChange={handleImage} className="hidden" />
             </label>
-            <p className="mt-2 text-xs text-neutral-400">{t.regPhotoHint}</p>
+            <p className="mt-2 text-xs text-neutral-400">Upload up to 4 photos. A default image is used if you skip this.</p>
+            {previews.length > 0 && (
+              <p className="mt-1 text-xs font-medium text-green-600">✓ {previews.length} photo{previews.length > 1 ? "s" : ""} selected</p>
+            )}
           </div>
         </div>
       </div>
@@ -330,6 +379,7 @@ export default function RegisterForm() {
           <input type="number" required min={0} placeholder="e.g. 15000" value={form.pricePerMonth} onChange={(e) => update("pricePerMonth", e.target.value)} className={inputClass} />
         </Field>
       </div>
+
 
       {/* Current location */}
       <Field label={t.regCurrentLocation}>

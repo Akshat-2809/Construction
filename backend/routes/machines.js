@@ -3,6 +3,7 @@ const router = express.Router();
 const Machine = require("../models/machine");
 const authMiddleware = require("../middleware/auth");
 const { broadcastNewListing } = require("../utils/broadcast");
+const { upload, uploadMultipleToCloudinary } = require("../utils/upload");
 
 // GET /api/machines — public
 router.get("/", async (req, res) => {
@@ -15,7 +16,7 @@ router.get("/", async (req, res) => {
 });
 
 // POST /api/machines — must be logged in
-router.post("/", authMiddleware, async (req, res) => {
+router.post("/", authMiddleware, upload.array("images", 4), async (req, res) => {
   try {
     const {
       category, craneType, company, model, image, location, currentLocation,
@@ -24,11 +25,19 @@ router.post("/", authMiddleware, async (req, res) => {
       operatorAvailable, fuelIncluded, transportAvailable, transportCharges,
     } = req.body;
 
+    // Upload images to Cloudinary if provided
+    let imageUrls = [];
+    if (req.files && req.files.length > 0) {
+      imageUrls = await uploadMultipleToCloudinary(req.files);
+    }
+
     const newMachine = new Machine({
       ownerId: req.user._id,
       category,
       craneType: category === "Crane" ? craneType : null,
-      company, model, image,
+      company, model,
+      image: imageUrls.length > 0 ? imageUrls[0] : (image || "/excavator.webp"),
+      images: imageUrls,
       location,
       currentLocation: currentLocation ?? "",
       pricePerMonth: Number(pricePerMonth),
@@ -47,8 +56,6 @@ router.post("/", authMiddleware, async (req, res) => {
     const saved = await newMachine.save();
     res.status(201).json(saved);
 
-    // Notify WhatsApp subscribers — fire-and-forget, doesn't block the response
-    // or fail the listing creation if WhatsApp sending has issues.
     broadcastNewListing(saved).catch((err) =>
       console.error("⚠️ broadcastNewListing failed:", err.message)
     );
