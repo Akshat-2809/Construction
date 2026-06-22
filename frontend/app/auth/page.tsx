@@ -1,15 +1,9 @@
 "use client";
 
-import { useState, useRef, Suspense } from "react";
+import { useState, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
-import { auth } from "@/lib/firebases";
-import {
-  RecaptchaVerifier,
-  signInWithPhoneNumber,
-  ConfirmationResult,
-} from "firebase/auth";
 import { useAuth } from "@/context/AuthContext";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL;
@@ -19,7 +13,11 @@ type Step = "form" | "otp";
 
 export default function AuthPage() {
   return (
-    <Suspense fallback={<div className="flex min-h-[80vh] items-center justify-center"><div className="h-8 w-8 animate-spin rounded-full border-2 border-neutral-200 border-t-ink" /></div>}>
+    <Suspense fallback={
+      <div className="flex min-h-[80vh] items-center justify-center">
+        <div className="h-8 w-8 animate-spin rounded-full border-2 border-neutral-200 border-t-ink" />
+      </div>
+    }>
       <AuthPageInner />
     </Suspense>
   );
@@ -35,12 +33,8 @@ function AuthPageInner() {
 
   const [sendingOtp, setSendingOtp] = useState(false);
   const [verifying, setVerifying] = useState(false);
-  const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
   const [otpError, setOtpError] = useState("");
-
-  const confirmationRef = useRef<ConfirmationResult | null>(null);
-  const recaptchaRef = useRef<RecaptchaVerifier | null>(null);
 
   const { login } = useAuth();
   const router = useRouter();
@@ -55,10 +49,6 @@ function AuthPageInner() {
     setOtp("");
     setError("");
     setOtpError("");
-    if (recaptchaRef.current) {
-      recaptchaRef.current.clear();
-      recaptchaRef.current = null;
-    }
   }
 
   async function handleSendOtp() {
@@ -76,6 +66,7 @@ function AuthPageInner() {
 
     setSendingOtp(true);
     try {
+      // Check if phone exists
       const checkRes = await fetch(`${API_URL}/api/auth/check-phone`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -94,59 +85,65 @@ function AuthPageInner() {
         return;
       }
 
-      if (recaptchaRef.current) {
-        recaptchaRef.current.clear();
-        recaptchaRef.current = null;
-      }
-      const verifier = new RecaptchaVerifier(auth, "recaptcha-container", {
-        size: "invisible",
+      // Send OTP via backend → GetOTP
+      const sendRes = await fetch(`${API_URL}/api/auth/send-otp`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ phone }),
       });
-      recaptchaRef.current = verifier;
 
-      const confirmation = await signInWithPhoneNumber(
-        auth,
-        `+91${phone.replace(/\D/g, "")}`,
-        verifier
-      );
-      confirmationRef.current = confirmation;
+      if (!sendRes.ok) {
+        const data = await sendRes.json();
+        throw new Error(data.message || "Failed to send OTP");
+      }
+
       setStep("otp");
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to send OTP");
+      setError(err instanceof Error ? err.message : "Failed to send OTP. Please try again.");
     } finally {
       setSendingOtp(false);
     }
   }
 
   async function handleVerifyOtp() {
-    if (!confirmationRef.current) return;
-    setVerifying(true);
     setOtpError("");
-    try {
-      await confirmationRef.current.confirm(otp);
+    setVerifying(true);
 
+    try {
+      // Step 1 — verify the OTP code
+      const verifyRes = await fetch(`${API_URL}/api/auth/verify-otp`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ phone, otp }),
+      });
+
+      if (!verifyRes.ok) {
+        const data = await verifyRes.json();
+        throw new Error(data.message || "Invalid OTP. Please try again.");
+      }
+
+      // Step 2 — register or login
       const endpoint = tab === "register" ? "/api/auth/register" : "/api/auth/login";
       const body = tab === "register" ? { name: name.trim(), phone } : { phone };
 
-      setSubmitting(true);
-      const res = await fetch(`${API_URL}${endpoint}`, {
+      const authRes = await fetch(`${API_URL}${endpoint}`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(body),
       });
 
-      if (!res.ok) {
-        const data = await res.json();
+      if (!authRes.ok) {
+        const data = await authRes.json();
         throw new Error(data.message || "Something went wrong");
       }
 
-      const { token, user: userData } = await res.json();
+      const { token, user: userData } = await authRes.json();
       login(userData, token);
       router.push(redirect);
     } catch (err) {
       setOtpError(err instanceof Error ? err.message : "Invalid OTP. Please try again.");
     } finally {
       setVerifying(false);
-      setSubmitting(false);
     }
   }
 
@@ -167,7 +164,7 @@ function AuthPageInner() {
   function handleOtpKeyDown(e: React.KeyboardEvent<HTMLInputElement>) {
     if (e.key === "Enter") {
       e.preventDefault();
-      if (!verifying && !submitting && otp.length >= 6) handleVerifyOtp();
+      if (!verifying && otp.length >= 6) handleVerifyOtp();
     }
   }
 
@@ -246,8 +243,6 @@ function AuthPageInner() {
                 <p className="rounded-lg bg-red-50 px-4 py-3 text-sm text-red-600">{error}</p>
               )}
 
-              <div id="recaptcha-container" />
-
               <button
                 onClick={handleSendOtp}
                 disabled={sendingOtp}
@@ -258,9 +253,17 @@ function AuthPageInner() {
 
               <p className="text-center text-sm text-neutral-500">
                 {tab === "login" ? (
-                  <>No account?{" "}<button onClick={() => switchTab("register")} className="font-semibold text-ink hover:underline">Register here</button></>
+                  <>No account?{" "}
+                    <button onClick={() => switchTab("register")} className="font-semibold text-ink hover:underline">
+                      Register here
+                    </button>
+                  </>
                 ) : (
-                  <>Already have an account?{" "}<button onClick={() => switchTab("login")} className="font-semibold text-ink hover:underline">Log in</button></>
+                  <>Already have an account?{" "}
+                    <button onClick={() => switchTab("login")} className="font-semibold text-ink hover:underline">
+                      Log in
+                    </button>
+                  </>
                 )}
               </p>
             </div>
@@ -294,20 +297,27 @@ function AuthPageInner() {
 
               <button
                 onClick={handleVerifyOtp}
-                disabled={verifying || submitting || otp.length < 6}
+                disabled={verifying || otp.length < 6}
                 className="w-full rounded-full bg-hivis py-3.5 text-sm font-bold text-ink transition-all hover:bg-hivis-dark hover:-translate-y-0.5 disabled:opacity-60 disabled:translate-y-0"
               >
-                {verifying || submitting
+                {verifying
                   ? tab === "register" ? "Creating account…" : "Logging in…"
                   : tab === "register" ? "Create account" : "Log in"}
               </button>
 
               <div className="flex items-center justify-between text-sm">
-                <button onClick={() => { setStep("form"); setOtp(""); setOtpError(""); }} className="text-neutral-500 hover:text-ink">
+                <button
+                  onClick={() => { setStep("form"); setOtp(""); setOtpError(""); }}
+                  className="text-neutral-500 hover:text-ink"
+                >
                   ← Change number
                 </button>
-                <button onClick={resendOtp} disabled={sendingOtp} className="font-semibold text-ink hover:underline disabled:opacity-50">
-                  Resend OTP
+                <button
+                  onClick={resendOtp}
+                  disabled={sendingOtp}
+                  className="font-semibold text-ink hover:underline disabled:opacity-50"
+                >
+                  {sendingOtp ? "Sending…" : "Resend OTP"}
                 </button>
               </div>
             </div>
