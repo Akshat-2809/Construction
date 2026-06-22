@@ -3,10 +3,20 @@
 import RegisterForm from "@/components/machinery/registerForm";
 import { useLang } from "@/context/LanguageContext";
 import { translations } from "@/lib/translation";
+import { useRequireAuth } from "@/hooks/useRequireAuth";
 
 export default function RegisterPage() {
+  const { user, loading } = useRequireAuth();
   const { lang } = useLang();
   const t = translations[lang];
+
+  if (loading || !user) {
+    return (
+      <div className="flex min-h-[80vh] items-center justify-center">
+        <div className="h-8 w-8 animate-spin rounded-full border-2 border-neutral-200 border-t-ink" />
+      </div>
+    );
+  }
 
   return (
     <div className="mx-auto max-w-2xl px-6 py-12 lg:py-16">

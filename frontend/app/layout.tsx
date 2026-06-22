@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Navbar from "@/components/layout/navbar";
 import Footer from "@/components/layout/footer";
+import WhatsappButton from "@/components/layout/WhatsappButton";
 import { LanguageProvider } from "@/context/LanguageContext";
 import { AuthProvider } from "@/context/AuthContext";
 import { ThemeProvider } from "@/context/themeContext";
@@ -29,6 +30,7 @@ export default function RootLayout({
               <Navbar />
               <main className="flex-1">{children}</main>
               <Footer />
+              <WhatsappButton />
             </LanguageProvider>
           </AuthProvider>
         </ThemeProvider>

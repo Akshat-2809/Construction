@@ -3,6 +3,7 @@
 import { useState, useRef, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
+import Image from "next/image";
 import { auth } from "@/lib/firebases";
 import {
   RecaptchaVerifier,
@@ -138,7 +139,6 @@ function AuthPageInner() {
         throw new Error(data.message || "Something went wrong");
       }
 
-      // ✅ Fixed: destructure token + user from response and pass both to login()
       const { token, user: userData } = await res.json();
       login(userData, token);
       router.push(redirect);
@@ -157,7 +157,6 @@ function AuthPageInner() {
     setTimeout(() => handleSendOtp(), 100);
   }
 
-  // Enter / Return key handlers — let the keyboard submit just like clicking the button
   function handleFormKeyDown(e: React.KeyboardEvent<HTMLInputElement>) {
     if (e.key === "Enter") {
       e.preventDefault();
@@ -178,9 +177,13 @@ function AuthPageInner() {
 
         <div className="mb-8 text-center">
           <Link href="/" className="inline-flex items-center gap-2.5">
-            <span className="flex h-10 w-10 items-center justify-center rounded-lg bg-ink text-base font-bold text-hivis">
-              M
-            </span>
+            <Image
+              src="/circle.webp"
+              alt="Myequipo"
+              width={40}
+              height={40}
+              className="h-10 w-10 object-contain"
+            />
             <span className="text-2xl font-semibold tracking-tight text-ink">Myequipo</span>
           </Link>
           <p className="mt-3 text-neutral-500">
