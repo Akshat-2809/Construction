@@ -17,6 +17,8 @@ const app = express();
 const allowedOrigins = [
   "http://localhost:3000",
   "https://construction-chi-six.vercel.app",
+  "https://myequipo.com",
+  "https://www.myequipo.com",
 ];
 
 app.use(
