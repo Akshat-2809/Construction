@@ -19,6 +19,9 @@ const allowedOrigins = [
   "https://construction-chi-six.vercel.app",
   "https://myequipo.com",
   "https://www.myequipo.com",
+  "capacitor://localhost",
+  "http://localhost",
+  "https://localhost",
 ];
 
 app.use(
