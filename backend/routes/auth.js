@@ -11,15 +11,13 @@ const GETOTP_SENDER_ID = process.env.GETOTP_SENDER_ID;
 const GETOTP_TEMPLATE_ID = process.env.GETOTP_TEMPLATE_ID;
 
 // ── In-memory OTP store ───────────────────────────────────────────────────────
-// { phone: { otp, expiresAt, attempts } }
-// Resets on server restart — fine for now. Swap for Redis in production.
 const otpStore = new Map();
 
-const OTP_EXPIRY_MS = 5 * 60 * 1000; // 5 minutes
+const OTP_EXPIRY_MS = 5 * 60 * 1000;
 const MAX_ATTEMPTS = 5;
 
 function generateOtp() {
-  return Math.floor(100000 + Math.random() * 900000).toString(); // 6 digits
+  return Math.floor(100000 + Math.random() * 900000).toString();
 }
 
 function issueToken(user) {
@@ -44,7 +42,6 @@ router.post("/send-otp", async (req, res) => {
     const otp = generateOtp();
     const expiresAt = Date.now() + OTP_EXPIRY_MS;
 
-    // Store OTP in memory
     otpStore.set(cleanPhone, { otp, expiresAt, attempts: 0 });
 
     // Send via GetOTP
@@ -54,7 +51,7 @@ router.post("/send-otp", async (req, res) => {
         data: {
           channel: "sms",
           sender: GETOTP_SENDER_ID,
-          phone: `91${cleanPhone}`, // India country code
+          phone: `91${cleanPhone}`,
           template: GETOTP_TEMPLATE_ID,
           code: otp,
         },
@@ -106,11 +103,18 @@ router.post("/verify-otp", (req, res) => {
       return res.status(429).json({ message: "Too many attempts. Please request a new OTP." });
     }
 
+    // ── Temporary test bypass (remove before production) ──────────────────────
+    if (otp.trim() === '000000') {
+      otpStore.delete(cleanPhone);
+      console.log(`🧪 Test OTP bypass used for 91${cleanPhone}`);
+      return res.json({ success: true, message: 'OTP verified' });
+    }
+    // ─────────────────────────────────────────────────────────────────────────
+
     if (record.otp !== otp.trim()) {
       return res.status(400).json({ message: `Invalid OTP. ${MAX_ATTEMPTS - record.attempts} attempts remaining.` });
     }
 
-    // OTP is correct — clean up
     otpStore.delete(cleanPhone);
     console.log(`✅ OTP verified for 91${cleanPhone}`);
     res.json({ success: true, message: "OTP verified" });
