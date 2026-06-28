@@ -18,7 +18,6 @@ export default function MachineCard({ machine }: { machine: Machine }) {
   const [deleting, setDeleting] = useState(false);
   const [imgIndex, setImgIndex] = useState(0);
 
-  // Build image list: use images[] if available, else fall back to image
   const imageList = (machine.images && machine.images.length > 0)
     ? machine.images
     : [machine.image];
@@ -35,10 +34,13 @@ export default function MachineCard({ machine }: { machine: Machine }) {
       : "",
     modelYear: String(machine.modelYear ?? ""),
     hoursUsed: String(machine.hoursUsed ?? ""),
+    operatorAvailable: machine.operatorAvailable ?? "no",
+    fuelIncluded: machine.fuelIncluded ?? "no",
+    transportAvailable: machine.transportAvailable ?? "no",
+    transportCharges: machine.transportCharges != null ? String(machine.transportCharges) : "",
   });
 
   const isAvailable = machine.availability === "yes";
-  // Owner check — show edit/delete only to the user who listed it
   const isOwner = !!user && user._id === machine.ownerId;
   const displayName = `${machine.company} ${machine.model}`;
   const todayStr = new Date().toISOString().split("T")[0];
@@ -69,6 +71,10 @@ export default function MachineCard({ machine }: { machine: Machine }) {
           availableFrom:
             form.availability === "no" && form.availableFrom
               ? form.availableFrom
+              : null,
+          transportCharges:
+            form.transportAvailable === "yes" && form.transportCharges
+              ? Number(form.transportCharges)
               : null,
         }),
       });
@@ -116,7 +122,6 @@ export default function MachineCard({ machine }: { machine: Machine }) {
           className="object-cover transition-transform duration-500 group-hover:scale-105"
         />
 
-        {/* Prev/Next arrows — only if multiple images */}
         {imageList.length > 1 && (
           <>
             <button
@@ -134,7 +139,6 @@ export default function MachineCard({ machine }: { machine: Machine }) {
               <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5" /></svg>
             </button>
 
-            {/* Dot indicators */}
             <div className="absolute bottom-2 left-1/2 z-10 flex -translate-x-1/2 gap-1.5">
               {imageList.map((_, i) => (
                 <button
@@ -181,7 +185,6 @@ export default function MachineCard({ machine }: { machine: Machine }) {
             <div className="space-y-2.5 border-t border-neutral-100 pt-4 text-sm">
               <Detail label="Dealer" value={machine.ownerName} />
 
-              {/* Contact — always visible, blue tick if owner is verified */}
               <div className="flex items-center justify-between">
                 <span className="text-neutral-400">Contact</span>
                 <span className="flex items-center gap-1.5 font-medium text-ink">
@@ -196,6 +199,20 @@ export default function MachineCard({ machine }: { machine: Machine }) {
 
               <Detail label="Model year" value={String(machine.modelYear ?? "—")} />
               <Detail label="Hours used" value={machine.hoursUsed != null ? `${machine.hoursUsed.toLocaleString("en-IN")} hrs` : "—"} />
+
+              <Detail label="Operator included" value={machine.operatorAvailable === "yes" ? "Yes" : "No"} />
+              <Detail label="Fuel included" value={machine.fuelIncluded === "yes" ? "Yes" : "No"} />
+              <Detail
+                label="Transport"
+                value={
+                  machine.transportAvailable === "yes"
+                    ? machine.transportCharges
+                      ? `₹${machine.transportCharges.toLocaleString("en-IN")}`
+                      : "Available"
+                    : "Not available"
+                }
+              />
+
               {machine.description && (
                 <p className="pt-1 leading-relaxed text-neutral-500">{machine.description}</p>
               )}
@@ -203,13 +220,23 @@ export default function MachineCard({ machine }: { machine: Machine }) {
               {/* Call dealer — always visible */}
               <a
                 href={`tel:${machine.ownerContact.replace(/\s/g, "")}`}
-                className="mt-2 flex items-center justify-center gap-2 rounded-full bg-hivis px-4 py-2.5 text-sm font-bold text-ink transition-colors hover:bg-hivis-dark"
-              >
-                <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 6.75c0 8.284 6.716 15 15 15h2.25a2.25 2.25 0 0 0 2.25-2.25v-1.372c0-.516-.351-.966-.852-1.091l-4.423-1.106c-.44-.11-.902.055-1.173.417l-.97 1.293c-.282.376-.769.542-1.21.38a12.035 12.035 0 0 1-7.143-7.143c-.162-.441.004-.928.38-1.21l1.293-.97c.363-.271.527-.734.417-1.173L6.963 3.102a1.125 1.125 0 0 0-1.091-.852H4.5A2.25 2.25 0 0 0 2.25 4.5v2.25Z" />
+  className="mt-2 flex items-center justify-center gap-2 rounded-full bg-hivis px-4 py-2.5 text-sm font-bold text-ink transition-colors hover:bg-hivis-dark"
+                  >
+                <svg
+    className="h-4 w-4"
+    fill="none"
+    viewBox="0 0 24 24"
+    strokeWidth={2}
+    stroke="currentColor"
+  >
+    <path
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      d="M2.25 6.75c0 8.284 6.716 15 15 15h2.25a2.25 2.25 0 0 0 2.25-2.25v-1.372c0-.516-.351-.966-.852-1.091l-4.423-1.106c-.44-.11-.902.055-1.173.417l-.97 1.293c-.282.376-.769.542-1.21.38a12.035 12.035 0 0 1-7.143-7.143c-.162-.441.004-.928.38-1.21l1.293-.97c.363-.271.527-.734.417-1.173L6.963 3.102a1.125 1.125 0 0 0-1.091-.852H4.5A2.25 2.25 0 0 0 2.25 4.5v2.25Z"
+    />
                 </svg>
-                Call dealer
-              </a>
+                  Call dealer
+                </a>
 
               {/* Edit + Delete — only shown to the owner */}
               {isOwner && (
@@ -260,7 +287,7 @@ export default function MachineCard({ machine }: { machine: Machine }) {
             </div>
             <h2 className="mt-4 text-center text-lg font-bold text-ink">Delete listing?</h2>
             <p className="mt-2 text-center text-sm text-neutral-500">
-              This will permanently remove <span className="font-semibold text-ink">{displayName}</span> from ACE. This cannot be undone.
+              This will permanently remove <span className="font-semibold text-ink">{displayName}</span> from Myequipo. This cannot be undone.
             </p>
             <div className="mt-6 flex gap-3">
               <button onClick={() => setShowDeleteConfirm(false)} className="flex-1 rounded-full border border-neutral-300 py-2.5 text-sm font-semibold text-ink hover:bg-neutral-50">
@@ -306,6 +333,46 @@ export default function MachineCard({ machine }: { machine: Machine }) {
               <EditField label="Hours used">
                 <input type="number" min={0} value={form.hoursUsed} onChange={(e) => updateForm("hoursUsed", e.target.value)} className={inputClass} />
               </EditField>
+
+              <EditField label="Operator available">
+                <div className="flex gap-3">
+                  {(["yes", "no"] as const).map((val) => (
+                    <button key={val} type="button"
+                      onClick={() => updateForm("operatorAvailable", val)}
+                      className={`flex-1 rounded-full border px-4 py-2 text-sm font-semibold capitalize transition-colors ${form.operatorAvailable === val ? "border-ink bg-ink text-white" : "border-neutral-300 bg-white text-ink hover:bg-neutral-50"}`}>
+                      {val === "yes" ? "Yes" : "No"}
+                    </button>
+                  ))}
+                </div>
+              </EditField>
+
+              <EditField label="Fuel included">
+                <div className="flex gap-3">
+                  {(["yes", "no"] as const).map((val) => (
+                    <button key={val} type="button"
+                      onClick={() => updateForm("fuelIncluded", val)}
+                      className={`flex-1 rounded-full border px-4 py-2 text-sm font-semibold capitalize transition-colors ${form.fuelIncluded === val ? "border-ink bg-ink text-white" : "border-neutral-300 bg-white text-ink hover:bg-neutral-50"}`}>
+                      {val === "yes" ? "Yes" : "No"}
+                    </button>
+                  ))}
+                </div>
+              </EditField>
+
+              <EditField label="Transport available">
+                <div className="flex gap-3">
+                  {(["yes", "no"] as const).map((val) => (
+                    <button key={val} type="button"
+                      onClick={() => { updateForm("transportAvailable", val); if (val === "no") updateForm("transportCharges", ""); }}
+                      className={`flex-1 rounded-full border px-4 py-2 text-sm font-semibold capitalize transition-colors ${form.transportAvailable === val ? "border-ink bg-ink text-white" : "border-neutral-300 bg-white text-ink hover:bg-neutral-50"}`}>
+                      {val === "yes" ? "Yes" : "No"}
+                    </button>
+                  ))}
+                </div>
+                {form.transportAvailable === "yes" && (
+                  <input type="number" min={0} placeholder="Transport charges (₹)" value={form.transportCharges} onChange={(e) => updateForm("transportCharges", e.target.value)} className={`${inputClass} mt-3`} />
+                )}
+              </EditField>
+
               <EditField label="Description">
                 <textarea rows={3} value={form.description} onChange={(e) => updateForm("description", e.target.value)} className={`${inputClass} resize-none`} />
               </EditField>
